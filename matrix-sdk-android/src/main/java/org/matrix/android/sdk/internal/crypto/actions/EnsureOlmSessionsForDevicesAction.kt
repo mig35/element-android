@@ -88,7 +88,7 @@ internal class EnsureOlmSessionsForDevicesAction @Inject constructor(
         val oneTimeKeys = oneTimeKeysForUsersDeviceTask.executeRetry(claimParams, remainingRetry = ONE_TIME_KEYS_RETRY_COUNT)
 
         // We iterate through claimed info to log missing otks
-        usersDevicesToClaim.forEach { userId, deviceId, alg ->
+        usersDevicesToClaim.forEach { userId, deviceId, _ ->
             val foundOtk = oneTimeKeys.getObject(userId, deviceId)
             if (foundOtk == null) {
                 Timber.d("## CRYPTO: No one time key for $userId|$deviceId")

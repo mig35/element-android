@@ -247,7 +247,6 @@ internal class MXMegolmEncryption(
         )
         val contentMap = MXUsersDevicesMap<Any>()
         var haveTargets = false
-        val userIds = results.userIds
         val noOlmToNotify = mutableListOf<UserDevice>()
 
         devicesByUser.forEach { entry ->

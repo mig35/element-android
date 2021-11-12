@@ -129,3 +129,11 @@ inline fun <T> MXUsersDevicesMap<T>.forEach(action: (String, String, T) -> Unit)
         }
     }
 }
+
+inline fun <T> MXUsersDevicesMap<T>.toDebugString() =
+        map.entries.joinToString { "${it.key} [${it.value.keys.joinToString { it }}]" }
+
+inline fun <T> MXUsersDevicesMap<T>.toDebugCount() =
+        map.entries.fold(0) { acc, new ->
+            acc + new.value.keys.size
+        }

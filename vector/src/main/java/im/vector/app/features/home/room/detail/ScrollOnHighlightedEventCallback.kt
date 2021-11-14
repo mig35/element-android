@@ -29,7 +29,7 @@ class ScrollOnHighlightedEventCallback(private val recyclerView: RecyclerView,
                                        private val layoutManager: LinearLayoutManager,
                                        private val timelineEventController: TimelineEventController) : DefaultListUpdateCallback {
 
-    private val scheduledEventId = AtomicReference<String?>()
+    private val scheduledEventId = AtomicReference<Event?>()
 
     override fun onInserted(position: Int, count: Int) {
         scrollIfNeeded()
@@ -40,14 +40,19 @@ class ScrollOnHighlightedEventCallback(private val recyclerView: RecyclerView,
     }
 
     private fun scrollIfNeeded() {
-        val eventId = scheduledEventId.get() ?: return
-        val positionToScroll = timelineEventController.searchPositionOfEvent(eventId) ?: return
+        val event = scheduledEventId.get() ?: return
+        val positionToScroll = timelineEventController.searchPositionOfEvent(event.id) ?: return
         recyclerView.stopScroll()
-        layoutManager.scrollToPosition(positionToScroll)
+        layoutManager.scrollToPosition(recyclerView, positionToScroll, event.moveABit)
         scheduledEventId.set(null)
     }
 
-    fun scheduleScrollTo(eventId: String?) {
-        scheduledEventId.set(eventId)
+    fun scheduleScrollTo(eventId: String?, moveABit: Boolean) {
+        scheduledEventId.set(eventId?.let { Event(it, moveABit) })
     }
 }
+
+private data class Event(
+        val id: String,
+        val moveABit: Boolean,
+)

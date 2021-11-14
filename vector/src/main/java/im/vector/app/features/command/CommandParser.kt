@@ -16,6 +16,7 @@
 
 package im.vector.app.features.command
 
+import im.vector.app.FeatureToggle
 import im.vector.app.core.extensions.isEmail
 import im.vector.app.core.extensions.isMsisdn
 import im.vector.app.features.home.room.detail.ChatEffect
@@ -34,7 +35,7 @@ object CommandParser {
      */
     fun parseSplashCommand(textMessage: CharSequence): ParsedCommand {
         // check if it has the Slash marker
-        if (!textMessage.startsWith("/")) {
+        if (!textMessage.startsWith("/") || FeatureToggle.DISABLE_SLASH_COMMANDS) {
             return ParsedCommand.ErrorNotACommand
         } else {
             Timber.v("parseSplashCommand")

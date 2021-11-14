@@ -24,6 +24,7 @@ import android.view.ViewGroup
 import androidx.core.view.isVisible
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import im.vector.app.BuildConfig
+import im.vector.app.FeatureToggle
 import im.vector.app.R
 import im.vector.app.databinding.FragmentLoginSplashBinding
 import im.vector.app.features.settings.VectorPreferences
@@ -77,7 +78,7 @@ class LoginSplashFragment @Inject constructor(
                     .setTitle(R.string.dialog_title_error)
                     .setMessage(getString(R.string.login_error_homeserver_from_url_not_found, url))
                     .setPositiveButton(R.string.login_error_homeserver_from_url_not_found_enter_manual) { _, _ ->
-                        loginViewModel.handle(LoginAction.OnGetStarted(resetLoginConfig = true))
+                        loginViewModel.handle(LoginAction.OnGetStarted(resetLoginConfig = if (FeatureToggle.DISABLE_SERVER_CHANGE) false else true))
                     }
                     .setNegativeButton(R.string.cancel, null)
                     .show()

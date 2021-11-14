@@ -26,6 +26,7 @@ import com.airbnb.mvrx.Uninitialized
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import im.vector.app.FeatureToggle
 import im.vector.app.R
 import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.di.MavericksAssistedViewModelFactory
@@ -816,7 +817,11 @@ class LoginViewModel @AssistedInject constructor(
                 // Notify the UI
                 _viewEvents.post(LoginViewEvents.OutdatedHomeserver)
             }
-            _viewEvents.post(LoginViewEvents.OnLoginFlowRetrieved)
+            if (FeatureToggle.ROUTE_USER_DIRECTLY_TO_LOGIN) {
+                handleUpdateSignMode(LoginAction.UpdateSignMode(SignMode.SignIn))
+            } else {
+                _viewEvents.post(LoginViewEvents.OnLoginFlowRetrieved)
+            }
         }
     }
 

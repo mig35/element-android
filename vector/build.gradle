@@ -226,7 +226,7 @@ android {
     buildTypes {
         debug {
             applicationIdSuffix ".debug"
-            resValue "string", "app_name", "Element dbg"
+            resValue "string", "app_name", "BoLiCa dbg"
 
             resValue "bool", "debug_mode", "true"
             buildConfigField "boolean", "LOW_PRIVACY_LOG_ENABLE", "false"
@@ -237,7 +237,7 @@ android {
         }
 
         release {
-            resValue "string", "app_name", "Element"
+            resValue "string", "app_name", "BoLiCa Riot"
 
             resValue "bool", "debug_mode", "false"
             buildConfigField "boolean", "LOW_PRIVACY_LOG_ENABLE", "false"
@@ -258,6 +258,7 @@ android {
 
     productFlavors {
         gplay {
+            applicationId "com.bolica.riot"
             apply plugin: 'com.google.gms.google-services'
             afterEvaluate {
                 tasks.matching { it.name.contains("GoogleServices") && !it.name.contains("Gplay") }*.enabled = false
@@ -462,9 +463,6 @@ dependencies {
 
     // gplay flavor only
     gplayImplementation('com.google.firebase:firebase-messaging:23.0.0') {
-        exclude group: 'com.google.firebase', module: 'firebase-core'
-        exclude group: 'com.google.firebase', module: 'firebase-analytics'
-        exclude group: 'com.google.firebase', module: 'firebase-measurement-connector'
     }
 
     // OSS License, gplay flavor only

@@ -30,6 +30,7 @@ import androidx.core.util.Pair
 import androidx.core.view.ViewCompat
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import im.vector.app.AppStateHandler
+import im.vector.app.FeatureToggle
 import im.vector.app.R
 import im.vector.app.RoomGroupingMethod
 import im.vector.app.core.di.ActiveSessionHolder
@@ -104,11 +105,16 @@ class DefaultNavigator @Inject constructor(
 ) : Navigator {
 
     override fun openLogin(context: Context, loginConfig: LoginConfig?, flags: Int) {
-        val intent = if (context.resources.getBoolean(R.bool.useLoginV2)) {
-            LoginActivity2.newIntent(context, loginConfig)
-        } else {
-            LoginActivity.newIntent(context, loginConfig)
-        }
+        val intent =
+                if (FeatureToggle.DISABLE_SERVER_CHANGE) {
+                    LoginActivity.newIntent(context, LoginConfig(homeServerUrl = "https://matrix.bolica.com", identityServerUrl = null))
+                } else {
+                    if (context.resources.getBoolean(R.bool.useLoginV2)) {
+                        LoginActivity2.newIntent(context, loginConfig)
+                    } else {
+                        LoginActivity.newIntent(context, loginConfig)
+                    }
+                }
         intent.addFlags(flags)
         context.startActivity(intent)
     }

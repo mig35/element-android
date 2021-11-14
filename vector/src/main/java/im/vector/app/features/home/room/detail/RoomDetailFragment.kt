@@ -873,10 +873,10 @@ class RoomDetailFragment @Inject constructor(
     private fun navigateToEvent(action: RoomDetailViewEvents.NavigateToEvent) {
         val scrollPosition = timelineEventController.searchPositionOfEvent(action.eventId)
         if (scrollPosition == null) {
-            scrollOnHighlightedEventCallback.scheduleScrollTo(action.eventId)
+            scrollOnHighlightedEventCallback.scheduleScrollTo(action.eventId, action.moveABit)
         } else {
             views.timelineRecyclerView.stopScroll()
-            layoutManager.scrollToPosition(scrollPosition)
+            layoutManager.scrollToPosition(views.timelineRecyclerView, scrollPosition, moveABit = action.moveABit)
         }
     }
 
@@ -2110,10 +2110,10 @@ class RoomDetailFragment @Inject constructor(
 
     private fun onJumpToReadMarkerClicked() = withState(roomDetailViewModel) {
         if (it.unreadState is UnreadState.HasUnread) {
-            roomDetailViewModel.handle(RoomDetailAction.NavigateToEvent(it.unreadState.firstUnreadEventId, false))
+            roomDetailViewModel.handle(RoomDetailAction.NavigateToEvent(it.unreadState.firstUnreadEventId, false, moveABit = true))
         }
         if (it.unreadState is UnreadState.ReadMarkerNotLoaded) {
-            roomDetailViewModel.handle(RoomDetailAction.NavigateToEvent(it.unreadState.readMarkerId, false))
+            roomDetailViewModel.handle(RoomDetailAction.NavigateToEvent(it.unreadState.readMarkerId, false, moveABit = true))
         }
     }
 

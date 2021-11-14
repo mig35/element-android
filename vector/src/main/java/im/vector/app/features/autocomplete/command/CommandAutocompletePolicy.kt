@@ -18,11 +18,17 @@ package im.vector.app.features.autocomplete.command
 
 import android.text.Spannable
 import com.otaliastudios.autocomplete.AutocompletePolicy
+import im.vector.app.FeatureToggle
 import javax.inject.Inject
 
 class CommandAutocompletePolicy @Inject constructor() : AutocompletePolicy {
 
-    var enabled: Boolean = true
+    var enabled: Boolean = !FeatureToggle.DISABLE_SLASH_COMMANDS
+        set(value) {
+            if (!FeatureToggle.DISABLE_SLASH_COMMANDS) {
+                field = value
+            }
+        }
 
     override fun getQuery(text: Spannable): CharSequence {
         if (text.length > 0) {

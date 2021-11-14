@@ -804,7 +804,7 @@ class RoomDetailViewModel @AssistedInject constructor(
         if (action.highlight) {
             setState { copy(highlightedEventId = targetEventId) }
         }
-        _viewEvents.post(RoomDetailViewEvents.NavigateToEvent(targetEventId))
+        _viewEvents.post(RoomDetailViewEvents.NavigateToEvent(targetEventId, moveABit = action.moveABit))
     }
 
     private fun handleResendEvent(action: RoomDetailAction.ResendMessage) {

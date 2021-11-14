@@ -25,6 +25,7 @@ import com.airbnb.mvrx.Uninitialized
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import im.vector.app.FeatureToggle
 import im.vector.app.core.di.MavericksAssistedViewModelFactory
 import im.vector.app.core.di.hiltMavericksViewModelFactory
 import im.vector.app.core.extensions.exhaustive
@@ -99,15 +100,17 @@ class CreateRoomViewModel @AssistedInject constructor(@Assisted private val init
         }
     }
 
-    private var adminE2EByDefault = true
+    private var adminE2EByDefault = if (FeatureToggle.DISABLE_ENC_BY_DEFAULT) false else true
 
     private fun initAdminE2eByDefault() {
         viewModelScope.launch(Dispatchers.IO) {
-            adminE2EByDefault = tryOrNull {
-                rawService.getElementWellknown(session.sessionParams)
-                        ?.isE2EByDefault()
-                        ?: true
-            } ?: true
+            if (!FeatureToggle.DISABLE_ENC_BY_DEFAULT) {
+                adminE2EByDefault = tryOrNull {
+                    rawService.getElementWellknown(session.sessionParams)
+                            ?.isE2EByDefault()
+                            ?: true
+                } ?: true
+            }
 
             setState {
                 copy(

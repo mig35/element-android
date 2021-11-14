@@ -318,14 +318,15 @@ class CallService : VectorService() {
         private const val DEFAULT_NOTIFICATION_ID = 6480
         private const val MISSED_CALL_TAG = "MISSED_CALL_TAG"
 
-        private const val ACTION_INCOMING_RINGING_CALL = "im.vector.app.core.services.CallService.ACTION_INCOMING_RINGING_CALL"
-        private const val ACTION_OUTGOING_RINGING_CALL = "im.vector.app.core.services.CallService.ACTION_OUTGOING_RINGING_CALL"
-        private const val ACTION_CALL_CONNECTING = "im.vector.app.core.services.CallService.ACTION_CALL_CONNECTING"
-        private const val ACTION_ONGOING_CALL = "im.vector.app.core.services.CallService.ACTION_ONGOING_CALL"
-        private const val ACTION_CALL_TERMINATED = "im.vector.app.core.services.CallService.ACTION_CALL_TERMINATED"
-        private const val ACTION_NO_ACTIVE_CALL = "im.vector.app.core.services.CallService.NO_ACTIVE_CALL"
-//        private const val ACTION_ACTIVITY_VISIBLE = "im.vector.app.core.services.CallService.ACTION_ACTIVITY_VISIBLE"
-//        private const val ACTION_STOP_RINGING = "im.vector.app.core.services.CallService.ACTION_STOP_RINGING"
+        private const val PACKAGE_NAME = "im.vector.app"
+        private const val ACTION_INCOMING_RINGING_CALL = "$PACKAGE_NAME.core.services.CallService.ACTION_INCOMING_RINGING_CALL"
+        private const val ACTION_OUTGOING_RINGING_CALL = "$PACKAGE_NAME.core.services.CallService.ACTION_OUTGOING_RINGING_CALL"
+        private const val ACTION_CALL_CONNECTING = "$PACKAGE_NAME.core.services.CallService.ACTION_CALL_CONNECTING"
+        private const val ACTION_ONGOING_CALL = "$PACKAGE_NAME.core.services.CallService.ACTION_ONGOING_CALL"
+        private const val ACTION_CALL_TERMINATED = "$PACKAGE_NAME.core.services.CallService.ACTION_CALL_TERMINATED"
+        private const val ACTION_NO_ACTIVE_CALL = "$PACKAGE_NAME.core.services.CallService.NO_ACTIVE_CALL"
+//        private const val ACTION_ACTIVITY_VISIBLE = "$PACKAGE_NAME.core.services.CallService.ACTION_ACTIVITY_VISIBLE"
+//        private const val ACTION_STOP_RINGING = "$PACKAGE_NAME.core.services.CallService.ACTION_STOP_RINGING"
 
         private const val EXTRA_CALL_ID = "EXTRA_CALL_ID"
         private const val EXTRA_IS_IN_BG = "EXTRA_IS_IN_BG"

@@ -43,6 +43,7 @@ import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.toContent
 import org.matrix.android.sdk.api.session.events.model.toModel
+import org.matrix.android.sdk.api.session.room.initAsync
 import org.matrix.android.sdk.api.session.room.model.PowerLevelsContent
 import org.matrix.android.sdk.api.session.room.model.RoomAvatarContent
 import org.matrix.android.sdk.api.session.room.model.RoomMemberContent
@@ -64,15 +65,18 @@ class TextComposerViewModel @AssistedInject constructor(
         private val rainbowGenerator: RainbowGenerator
 ) : VectorViewModel<TextComposerViewState, TextComposerAction, TextComposerViewEvents>(initialState) {
 
-    private val room = session.getRoom(initialState.roomId)!!
+    private val room by lazy { session.getRoom(initialState.roomId)!! }
 
     // Keep it out of state to avoid invalidate being called
     private var currentComposerText: CharSequence = ""
 
     init {
-        loadDraftIfAny()
-        observePowerLevel()
-        subscribeToStateInternal()
+        viewModelScope.launch {
+            initAsync { room }
+            loadDraftIfAny()
+            observePowerLevel()
+            subscribeToStateInternal()
+        }
     }
 
     override fun handle(action: TextComposerAction) {
@@ -356,7 +360,7 @@ class TextComposerViewModel @AssistedInject constructor(
                         is ParsedCommand.LeaveRoom                -> {
                             viewModelScope.launch(Dispatchers.IO) {
                                 try {
-                                    session.getRoom(slashCommandResult.roomId)?.leave(null)
+                                    session.getRoomSuspend(slashCommandResult.roomId)?.leave(null)
                                     popDraft()
                                     _viewEvents.post(TextComposerViewEvents.SlashCommandResultOk())
                                 } catch (failure: Throwable) {
@@ -435,7 +439,7 @@ class TextComposerViewModel @AssistedInject constructor(
     private fun popDraft() = withState {
         if (it.sendMode is SendMode.REGULAR && it.sendMode.fromSharing) {
             // If we were sharing, we want to get back our last value from draft
-            loadDraftIfAny()
+            viewModelScope.launch { loadDraftIfAny() }
         } else {
             // Otherwise we clear the composer and remove the draft from db
             setState { copy(sendMode = SendMode.REGULAR("", false)) }
@@ -445,7 +449,7 @@ class TextComposerViewModel @AssistedInject constructor(
         }
     }
 
-    private fun loadDraftIfAny() {
+    private suspend fun loadDraftIfAny() {
         val currentDraft = room.getDraft()
         setState {
             copy(
@@ -577,7 +581,7 @@ class TextComposerViewModel @AssistedInject constructor(
             } else {
                 session.getRoomSummary(roomIdOrAlias = command.roomAlias)
                         ?.roomId
-                        ?.let { session.getRoom(it) }
+                        ?.let { session.getRoomSuspend(it) }
             }
                     ?.leave(reason = null)
         }

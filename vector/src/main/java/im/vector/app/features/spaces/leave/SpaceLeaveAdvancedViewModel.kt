@@ -72,14 +72,14 @@ class SpaceLeaveAdvancedViewModel @AssistedInject constructor(
                     try {
                         state.selectedRooms.forEach {
                             try {
-                                session.getRoom(it)?.leave(null)
+                                session.getRoomSuspend(it)?.leave(null)
                             } catch (failure: Throwable) {
                                 // silently ignore?
                                 Timber.e(failure, "Fail to leave sub rooms/spaces")
                             }
                         }
 
-                        session.getRoom(initialState.spaceId)?.leave(null)
+                        session.getRoomSuspend(initialState.spaceId)?.leave(null)
                         // We observe the membership and to dismiss when we have remote echo of leaving
                     } catch (failure: Throwable) {
                         setState { copy(leaveState = Fail(failure)) }

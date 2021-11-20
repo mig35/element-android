@@ -129,6 +129,16 @@ class DefaultNavigator @Inject constructor(
         startActivity(context, intent, buildTask)
     }
 
+    override suspend fun openRoomSuspended(context: Context, roomId: String, eventId: String?, buildTask: Boolean) {
+        if (sessionHolder.getSafeActiveSession()?.getRoomSuspend(roomId) == null) {
+            fatalError("Trying to open an unknown room $roomId", vectorPreferences.failFast())
+            return
+        }
+        val args = RoomDetailArgs(roomId, eventId)
+        val intent = RoomDetailActivity.newIntent(context, args)
+        startActivity(context, intent, buildTask)
+    }
+
     override fun switchToSpace(context: Context, spaceId: String, postSwitchSpaceAction: Navigator.PostSwitchSpaceAction) {
         if (sessionHolder.getSafeActiveSession()?.getRoomSummary(spaceId) == null) {
             fatalError("Trying to open an unknown space $spaceId", vectorPreferences.failFast())

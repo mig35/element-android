@@ -52,7 +52,7 @@ internal class DefaultDraftService @AssistedInject constructor(@Assisted private
         }
     }
 
-    override fun getDraft(): UserDraft? {
+    override suspend fun getDraft(): UserDraft? {
         return draftRepository.getDraft(roomId)
     }
 

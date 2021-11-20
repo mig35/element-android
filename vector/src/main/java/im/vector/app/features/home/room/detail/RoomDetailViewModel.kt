@@ -81,6 +81,7 @@ import org.matrix.android.sdk.api.session.events.model.toContent
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.file.FileService
 import org.matrix.android.sdk.api.session.initsync.SyncStatusService
+import org.matrix.android.sdk.api.session.room.initAsync
 import org.matrix.android.sdk.api.session.room.members.ChangeMembershipState
 import org.matrix.android.sdk.api.session.room.members.roomMemberQueryParams
 import org.matrix.android.sdk.api.session.room.model.Membership
@@ -121,12 +122,12 @@ class RoomDetailViewModel @AssistedInject constructor(
 ) : VectorViewModel<RoomDetailViewState, RoomDetailAction, RoomDetailViewEvents>(initialState),
         Timeline.Listener, ChatEffectManager.Delegate, CallProtocolsChecker.Listener {
 
-    private val room = session.getRoom(initialState.roomId)!!
+    private val room by lazy { session.getRoom(initialState.roomId)!! }
     private val eventId = initialState.eventId
     private val invisibleEventsObservable = BehaviorRelay.create<RoomDetailAction.TimelineEventTurnsInvisible>()
     private val visibleEventsObservable = BehaviorRelay.create<RoomDetailAction.TimelineEventTurnsVisible>()
     private var timelineEvents = MutableSharedFlow<List<TimelineEvent>>(0)
-    val timeline = timelineFactory.createTimeline(viewModelScope, room, eventId)
+    val timeline by lazy { timelineFactory.createTimeline(viewModelScope, room, eventId) }
 
     // Same lifecycle than the ViewModel (survive to screen rotation)
     val previewUrlRetriever = PreviewUrlRetriever(session, viewModelScope)
@@ -162,34 +163,37 @@ class RoomDetailViewModel @AssistedInject constructor(
     }
 
     init {
-        timeline.start()
-        timeline.addListener(this)
-        observeRoomSummary()
-        observeMembershipChanges()
-        observeSummaryState()
-        getUnreadState()
-        observeSyncState()
-        observeDataStore()
-        observeEventDisplayedActions()
-        observeUnreadState()
-        observeMyRoomMember()
-        observeActiveRoomWidgets()
-        observePowerLevel()
-        room.getRoomSummaryLive()
-        viewModelScope.launch(Dispatchers.IO) {
-            tryOrNull { room.markAsRead(ReadService.MarkAsReadParams.READ_RECEIPT) }
-        }
-        // Inform the SDK that the room is displayed
-        viewModelScope.launch(Dispatchers.IO) {
-            tryOrNull { session.onRoomDisplayed(initialState.roomId) }
-        }
-        callManager.addProtocolsCheckerListener(this)
-        callManager.checkForProtocolsSupportIfNeeded()
-        chatEffectManager.delegate = this
+        viewModelScope.launch {
+            initAsync { room }
+            timeline.start()
+            timeline.addListener(this@RoomDetailViewModel)
+            observeRoomSummary()
+            observeMembershipChanges()
+            observeSummaryState()
+            getUnreadState()
+            observeSyncState()
+            observeDataStore()
+            observeEventDisplayedActions()
+            observeUnreadState()
+            observeMyRoomMember()
+            observeActiveRoomWidgets()
+            observePowerLevel()
+            room.getRoomSummaryLive()
+            viewModelScope.launch(Dispatchers.IO) {
+                tryOrNull { room.markAsRead(ReadService.MarkAsReadParams.READ_RECEIPT) }
+            }
+            // Inform the SDK that the room is displayed
+            viewModelScope.launch(Dispatchers.IO) {
+                tryOrNull { session.onRoomDisplayed(initialState.roomId) }
+            }
+            callManager.addProtocolsCheckerListener(this@RoomDetailViewModel)
+            callManager.checkForProtocolsSupportIfNeeded()
+            chatEffectManager.delegate = this@RoomDetailViewModel
 
-        // Ensure to share the outbound session keys with all members
-        if (OutboundSessionKeySharingStrategy.WhenEnteringRoom == BuildConfig.outboundSessionKeySharingStrategy && room.isEncrypted()) {
-            prepareForEncryption()
+            // Ensure to share the outbound session keys with all members
+            if (OutboundSessionKeySharingStrategy.WhenEnteringRoom == BuildConfig.outboundSessionKeySharingStrategy && room.isEncrypted()) {
+                prepareForEncryption()
+            }
         }
     }
 
@@ -1087,7 +1091,7 @@ class RoomDetailViewModel @AssistedInject constructor(
                     setState { copy(asyncInviter = Success(it)) }
                 }
             }
-            room.getStateEvent(EventType.STATE_ROOM_TOMBSTONE)?.also {
+            room.getStateEventSuspended(EventType.STATE_ROOM_TOMBSTONE)?.also {
                 setState { copy(tombstoneEvent = it) }
             }
         }

@@ -50,8 +50,8 @@ internal class DraftRepository @Inject constructor(@SessionDatabase private val 
         }
     }
 
-    fun getDraft(roomId: String): UserDraft? {
-        return realmSessionProvider.withRealm { realm ->
+    suspend fun getDraft(roomId: String): UserDraft? {
+        return realmSessionProvider.withRealmSuspend { realm ->
             UserDraftsEntity.where(realm, roomId).findFirst()
                     ?.userDrafts
                     ?.firstOrNull()

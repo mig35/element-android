@@ -90,7 +90,7 @@ override fun getRoomWidgetsLive(
         return widgetManager.destroyRoomWidget(roomId, widgetId)
     }
 
-    override fun hasPermissionsToHandleWidgets(roomId: String): Boolean {
+    override suspend fun hasPermissionsToHandleWidgets(roomId: String): Boolean {
         return widgetManager.hasPermissionsToHandleWidgets(roomId)
     }
 }

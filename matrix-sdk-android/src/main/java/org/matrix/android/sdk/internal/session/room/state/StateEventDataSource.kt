@@ -47,6 +47,12 @@ internal class StateEventDataSource @Inject constructor(
         }
     }
 
+    suspend fun getStateEventSuspend(roomId: String, eventType: String, stateKey: QueryStringValue): Event? {
+        return realmSessionProvider.withRealmSuspend { realm ->
+            buildStateEventQuery(realm, roomId, setOf(eventType), stateKey).findFirst()?.root?.asDomain()
+        }
+    }
+
     fun getStateEventLive(roomId: String, eventType: String, stateKey: QueryStringValue): LiveData<Optional<Event>> {
         val liveData = monarchy.findAllMappedWithChanges(
                 { realm -> buildStateEventQuery(realm, roomId, setOf(eventType), stateKey) },

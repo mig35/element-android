@@ -107,7 +107,7 @@ class RxRoom(private val room: Room) {
 
     fun liveDraft(): Observable<Optional<UserDraft>> {
         return room.getDraftLive().asObservable()
-                .startWithCallable {
+                .startWithSuspended {
                     room.getDraft().toOptional()
                 }
     }

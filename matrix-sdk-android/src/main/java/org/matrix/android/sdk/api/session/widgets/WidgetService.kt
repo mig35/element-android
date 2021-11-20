@@ -120,5 +120,5 @@ interface WidgetService {
      * Returns true if you can add/remove widgets. It goes through
      * @param roomId the room where you want to administrate widgets.
      */
-    fun hasPermissionsToHandleWidgets(roomId: String): Boolean
+    suspend fun hasPermissionsToHandleWidgets(roomId: String): Boolean
 }

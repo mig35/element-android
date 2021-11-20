@@ -77,6 +77,11 @@ interface StateService {
     fun getStateEvent(eventType: String, stateKey: QueryStringValue = QueryStringValue.NoCondition): Event?
 
     /**
+     * Get a state event of the room
+     */
+    suspend fun getStateEventSuspended(eventType: String, stateKey: QueryStringValue = QueryStringValue.NoCondition): Event?
+
+    /**
      * Get a live state event of the room
      */
     fun getStateEventLive(eventType: String, stateKey: QueryStringValue = QueryStringValue.NoCondition): LiveData<Optional<Event>>

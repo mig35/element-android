@@ -47,7 +47,7 @@ class UpgradeRoomViewModelTask @Inject constructor(
     override suspend fun execute(params: Params): Result {
         params.progressReporter?.invoke(true, 0, 0)
 
-        val room = session.getRoom(params.roomId)
+        val room = session.getRoomSuspend(params.roomId)
                 ?: return Result.UnknownRoom
         if (!room.userMayUpgradeRoom(session.myUserId)) {
             return Result.NotAllowed
@@ -64,7 +64,7 @@ class UpgradeRoomViewModelTask @Inject constructor(
         params.userIdsToAutoInvite.forEach {
             params.progressReporter?.invoke(false, currentStep, totalStep)
             tryOrNull {
-                session.getRoom(updatedRoomId)?.invite(it)
+                session.getRoomSuspend(updatedRoomId)?.invite(it)
             }
             currentStep++
         }
@@ -73,7 +73,7 @@ class UpgradeRoomViewModelTask @Inject constructor(
             params.progressReporter?.invoke(false, currentStep, totalStep)
             // we try and silently fail
             try {
-                session.getRoom(parentId)?.asSpace()?.let { parentSpace ->
+                session.getRoomSuspend(parentId)?.asSpace()?.let { parentSpace ->
                     val currentInfo = parentSpace.getChildInfo(params.roomId)
                     if (currentInfo != null) {
                         parentSpace.addChildren(

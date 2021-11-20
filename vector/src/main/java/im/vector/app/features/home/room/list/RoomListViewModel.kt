@@ -218,8 +218,8 @@ class RoomListViewModel @AssistedInject constructor(
             )
         }
 
-        val room = session.getRoom(roomId) ?: return@withState
         viewModelScope.launch {
+            val room = session.getRoomSuspend(roomId) ?: return@launch
             try {
                 room.join()
                 // We do not update the joiningRoomsIds here, because, the room is not joined yet regarding the sync data.
@@ -240,8 +240,8 @@ class RoomListViewModel @AssistedInject constructor(
             return@withState
         }
 
-        val room = session.getRoom(roomId) ?: return@withState
         viewModelScope.launch {
+            val room = session.getRoomSuspend(roomId) ?: return@launch
             try {
                 room.leave(null)
                 // We do not update the rejectingRoomsIds here, because, the room is not rejected yet regarding the sync data.
@@ -256,14 +256,12 @@ class RoomListViewModel @AssistedInject constructor(
     }
 
     private fun handleChangeNotificationMode(action: RoomListAction.ChangeRoomNotificationState) {
-        val room = session.getRoom(action.roomId)
-        if (room != null) {
-            viewModelScope.launch {
-                try {
-                    room.setRoomNotificationState(action.notificationState)
-                } catch (failure: Exception) {
-                    _viewEvents.post(RoomListViewEvents.Failure(failure))
-                }
+        viewModelScope.launch {
+            val room = session.getRoomSuspend(action.roomId)
+            try {
+                room?.setRoomNotificationState(action.notificationState)
+            } catch (failure: Exception) {
+                _viewEvents.post(RoomListViewEvents.Failure(failure))
             }
         }
     }
@@ -295,8 +293,8 @@ class RoomListViewModel @AssistedInject constructor(
     }
 
     private fun handleToggleTag(action: RoomListAction.ToggleTag) {
-        session.getRoom(action.roomId)?.let { room ->
-            viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(Dispatchers.IO) {
+            session.getRoomSuspend(action.roomId)?.let { room ->
                 try {
                     if (room.roomSummary()?.hasTag(action.tag) == false) {
                         // Favorite and low priority tags are exclusive, so maybe delete the other tag first
@@ -327,9 +325,9 @@ class RoomListViewModel @AssistedInject constructor(
     }
 
     private fun handleLeaveRoom(action: RoomListAction.LeaveRoom) {
-        _viewEvents.post(RoomListViewEvents.Loading(null))
-        val room = session.getRoom(action.roomId) ?: return
         viewModelScope.launch {
+            _viewEvents.post(RoomListViewEvents.Loading(null))
+            val room = session.getRoomSuspend(action.roomId) ?: return@launch
             val value = runCatching { room.leave(null) }
                     .fold({ RoomListViewEvents.Done }, { RoomListViewEvents.Failure(it) })
             _viewEvents.post(value)

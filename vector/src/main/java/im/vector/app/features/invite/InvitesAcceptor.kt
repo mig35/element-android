@@ -104,7 +104,7 @@ class InvitesAcceptor @Inject constructor(
 
     private suspend fun Session.joinRoomSafely(roomId: String) {
         if (shouldRejectRoomIds.contains(roomId)) {
-            getRoom(roomId)?.rejectInviteSafely()
+            getRoomSuspend(roomId)?.rejectInviteSafely()
             return
         }
         val roomMembershipChanged = getChangeMemberships(roomId)
@@ -116,7 +116,7 @@ class InvitesAcceptor @Inject constructor(
                 Timber.v("Failed auto join room: $roomId")
                 // if we got 404 on invites, the inviting user have left or the hs is off.
                 if (failure is Failure.ServerError && failure.httpCode == 404) {
-                    val room = getRoom(roomId) ?: return
+                    val room = getRoomSuspend(roomId) ?: return
                     val inviterId = room.roomSummary()?.inviterId
                     // if the inviting user is on the same HS, there can only be one cause: they left, so we try to reject the invite.
                     if (inviterId?.endsWith(sessionParams.credentials.homeServer.orEmpty()).orFalse()) {

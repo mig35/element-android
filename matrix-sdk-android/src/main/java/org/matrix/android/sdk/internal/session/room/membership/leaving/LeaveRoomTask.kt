@@ -57,7 +57,7 @@ internal class DefaultLeaveRoomTask @Inject constructor(
             return
         }
         roomChangeMembershipStateDataSource.updateState(roomId, ChangeMembershipState.Leaving)
-        val roomCreateStateEvent = stateEventDataSource.getStateEvent(
+        val roomCreateStateEvent = stateEventDataSource.getStateEventSuspend(
                 roomId = roomId,
                 eventType = EventType.STATE_ROOM_CREATE,
                 stateKey = QueryStringValue.NoCondition

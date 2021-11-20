@@ -49,14 +49,14 @@ class CallUserMapper(private val session: Session, private val protocolsChecker:
         val virtualRoomId = tryOrNull {
             ensureVirtualRoomExists(virtualUser, roomId)
         } ?: return null
-        session.getRoom(virtualRoomId)?.markVirtual(roomId)
+        session.getRoomSuspend(virtualRoomId)?.markVirtual(roomId)
         return virtualRoomId
     }
 
     suspend fun onNewInvitedRoom(invitedRoomId: String) {
         protocolsChecker.awaitCheckProtocols()
         if (!protocolsChecker.supportVirtualRooms) return
-        val invitedRoom = session.getRoom(invitedRoomId) ?: return
+        val invitedRoom = session.getRoomSuspend(invitedRoomId) ?: return
         val inviterId = invitedRoom.roomSummary()?.inviterId ?: return
         val nativeLookup = session.sipNativeLookup(inviterId).firstOrNull() ?: return
         if (nativeLookup.fields.containsKey("is_virtual")) {

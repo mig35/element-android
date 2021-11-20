@@ -20,6 +20,10 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.Transformations
 import androidx.paging.PagedList
 import com.zhuinden.monarchy.Monarchy
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.RoomService
@@ -52,6 +56,7 @@ import org.matrix.android.sdk.internal.session.room.read.MarkAllRoomsReadTask
 import org.matrix.android.sdk.internal.session.room.summary.RoomSummaryDataSource
 import org.matrix.android.sdk.internal.session.user.accountdata.UpdateBreadcrumbsTask
 import org.matrix.android.sdk.internal.util.fetchCopied
+import java.util.concurrent.Executors
 import javax.inject.Inject
 
 internal class DefaultRoomService @Inject constructor(
@@ -75,6 +80,10 @@ internal class DefaultRoomService @Inject constructor(
 
     override fun getRoom(roomId: String): Room? {
         return roomGetter.getRoom(roomId)
+    }
+
+    override suspend fun getRoomSuspend(roomId: String): Room? {
+        return roomGetter.getRoomSuspend(roomId)
     }
 
     override fun getExistingDirectRoomWithUser(otherUserId: String): String? {

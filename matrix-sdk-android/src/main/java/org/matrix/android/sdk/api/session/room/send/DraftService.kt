@@ -34,7 +34,7 @@ interface DraftService {
     /**
      * Return the current draft or null
      */
-    fun getDraft(): UserDraft?
+    suspend fun getDraft(): UserDraft?
 
     /**
      * Return the current draft if any, as a live data

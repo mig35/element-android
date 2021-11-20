@@ -26,6 +26,7 @@ import im.vector.app.core.di.hiltMavericksViewModelFactory
 import im.vector.app.core.platform.VectorViewModel
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.session.Session
+import org.matrix.android.sdk.api.session.room.initAsync
 import org.matrix.android.sdk.flow.flow
 import org.matrix.android.sdk.flow.unwrap
 
@@ -41,11 +42,14 @@ class RoomNotificationSettingsViewModel @AssistedInject constructor(
 
     companion object : MavericksViewModelFactory<RoomNotificationSettingsViewModel, RoomNotificationSettingsViewState> by hiltMavericksViewModelFactory()
 
-    private val room = session.getRoom(initialState.roomId)!!
+    private val room by lazy { session.getRoom(initialState.roomId)!! }
 
     init {
-        observeSummary()
-        observeNotificationState()
+        viewModelScope.launch {
+            initAsync { room }
+            observeSummary()
+            observeNotificationState()
+        }
     }
 
     private fun observeSummary() {

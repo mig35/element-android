@@ -18,6 +18,8 @@ package org.matrix.android.sdk.api.session.room
 
 import androidx.lifecycle.LiveData
 import androidx.paging.PagedList
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.room.members.ChangeMembershipState
 import org.matrix.android.sdk.api.session.room.model.Membership
@@ -29,6 +31,7 @@ import org.matrix.android.sdk.api.session.room.summary.RoomAggregateNotification
 import org.matrix.android.sdk.api.util.Optional
 import org.matrix.android.sdk.internal.session.identity.model.SignInvitationResult
 import org.matrix.android.sdk.internal.session.room.alias.RoomAliasDescription
+import timber.log.Timber
 
 /**
  * This interface defines methods to get rooms. It's implemented at the session level.
@@ -82,6 +85,13 @@ interface RoomService {
      * @return a room with roomId or null
      */
     fun getRoom(roomId: String): Room?
+
+    /**
+     * Get a room from a roomId
+     * @param roomId the roomId to look for.
+     * @return a room with roomId or null
+     */
+    suspend fun getRoomSuspend(roomId: String): Room?
 
     /**
      * Get a roomSummary from a roomId or a room alias
@@ -229,4 +239,10 @@ interface RoomService {
      */
     fun getFlattenRoomSummaryChildrenOfLive(spaceId: String?,
                                             memberships: List<Membership> = Membership.activeMemberships()): LiveData<List<RoomSummary>>
+}
+
+suspend inline fun initAsync(crossinline roomGetter: () -> Room) {
+    withContext(Dispatchers.Default) {
+        Timber.i("${roomGetter().hashCode()}")
+    }
 }

@@ -23,6 +23,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.ConcatAdapter
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -49,6 +50,7 @@ import im.vector.app.features.home.room.list.actions.RoomListQuickActionsSharedA
 import im.vector.app.features.home.room.list.actions.RoomListQuickActionsSharedActionViewModel
 import im.vector.app.features.home.room.list.widget.NotifsFabMenuView
 import im.vector.app.features.notifications.NotificationDrawerManager
+import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
 import org.matrix.android.sdk.api.extensions.orTrue
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
@@ -173,7 +175,9 @@ class RoomListFragment @Inject constructor(
     }
 
     private fun handleSelectRoom(event: RoomListViewEvents.SelectRoom) {
-        navigator.openRoom(requireActivity(), event.roomSummary.roomId)
+        viewLifecycleOwner.lifecycleScope.launch {
+            navigator.openRoomSuspended(requireActivity(), event.roomSummary.roomId)
+        }
     }
 
     private fun setupCreateRoomButton() {

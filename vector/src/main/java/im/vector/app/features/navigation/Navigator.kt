@@ -43,6 +43,8 @@ interface Navigator {
 
     fun openRoom(context: Context, roomId: String, eventId: String? = null, buildTask: Boolean = false)
 
+    suspend fun openRoomSuspended(context: Context, roomId: String, eventId: String? = null, buildTask: Boolean = false)
+
     sealed class PostSwitchSpaceAction {
         object None : PostSwitchSpaceAction()
         data class OpenDefaultRoom(val roomId: String, val showShareSheet: Boolean) : PostSwitchSpaceAction()

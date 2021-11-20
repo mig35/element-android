@@ -113,10 +113,10 @@ class MatrixToBottomSheetViewModel @AssistedInject constructor(
                     }
                             ?.getOrNull()
                             ?.roomId?.let {
-                                session.getRoom(it)
+                                session.getRoomSuspend(it)
                             }
                 } else {
-                    session.getRoom(permalinkData.roomIdOrAlias)
+                    session.getRoomSuspend(permalinkData.roomIdOrAlias)
                 }
                         ?.roomSummary()
                         // don't take if not Join, as it could be outdated

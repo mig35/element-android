@@ -83,7 +83,7 @@ class AppStateHandler @Inject constructor(
         if (spaceId != null) {
             uSession.coroutineScope.launch(Dispatchers.IO) {
                 tryOrNull {
-                    uSession.getRoom(spaceId)?.loadRoomMembersIfNeeded()
+                    uSession.getRoomSuspend(spaceId)?.loadRoomMembersIfNeeded()
                 }
             }
         }

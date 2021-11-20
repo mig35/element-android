@@ -76,9 +76,9 @@ class NotificationBroadcastReceiver : BroadcastReceiver() {
 
     private fun handleJoinRoom(roomId: String) {
         activeSessionHolder.getSafeActiveSession()?.let { session ->
-            val room = session.getRoom(roomId)
-            if (room != null) {
-                session.coroutineScope.launch {
+            session.coroutineScope.launch {
+                val room = session.getRoomSuspend(roomId)
+                if (room != null) {
                     tryOrNull { room.join() }
                 }
             }
@@ -87,9 +87,9 @@ class NotificationBroadcastReceiver : BroadcastReceiver() {
 
     private fun handleRejectRoom(roomId: String) {
         activeSessionHolder.getSafeActiveSession()?.let { session ->
-            val room = session.getRoom(roomId)
-            if (room != null) {
-                session.coroutineScope.launch {
+            session.coroutineScope.launch {
+                val room = session.getRoom(roomId)
+                if (room != null) {
                     tryOrNull { room.leave() }
                 }
             }
@@ -98,9 +98,9 @@ class NotificationBroadcastReceiver : BroadcastReceiver() {
 
     private fun handleMarkAsRead(roomId: String) {
         activeSessionHolder.getActiveSession().let { session ->
-            val room = session.getRoom(roomId)
-            if (room != null) {
-                session.coroutineScope.launch {
+            session.coroutineScope.launch {
+                val room = session.getRoom(roomId)
+                if (room != null) {
                     tryOrNull { room.markAsRead(ReadService.MarkAsReadParams.READ_RECEIPT) }
                 }
             }

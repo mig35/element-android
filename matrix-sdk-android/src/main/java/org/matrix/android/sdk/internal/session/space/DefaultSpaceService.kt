@@ -200,7 +200,7 @@ internal class DefaultSpaceService @Inject constructor(
             if (roomSummaryDataSource.getRoomSummary(parentSpaceId)?.membership != Membership.JOIN) {
                 throw UnsupportedOperationException("Cannot add canonical child if not member of parent")
             }
-            val powerLevelsEvent = stateEventDataSource.getStateEvent(
+            val powerLevelsEvent = stateEventDataSource.getStateEventSuspend(
                     roomId = parentSpaceId,
                     eventType = EventType.STATE_ROOM_POWER_LEVELS,
                     stateKey = QueryStringValue.NoCondition

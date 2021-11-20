@@ -20,10 +20,13 @@ import android.os.Looper
 import androidx.annotation.MainThread
 import com.zhuinden.monarchy.Monarchy
 import io.realm.Realm
+import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.SessionLifecycleObserver
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.session.SessionScope
+import java.util.concurrent.Executors
 import javax.inject.Inject
 import kotlin.concurrent.getOrSet
 
@@ -35,6 +38,8 @@ import kotlin.concurrent.getOrSet
 internal class RealmSessionProvider @Inject constructor(@SessionDatabase private val monarchy: Monarchy) :
     SessionLifecycleObserver {
 
+    private val realmDispatcher = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
+
     private val realmThreadLocal = ThreadLocal<Realm>()
 
     /**
@@ -42,6 +47,13 @@ internal class RealmSessionProvider @Inject constructor(@SessionDatabase private
      */
     fun <R> withRealm(block: (Realm) -> R): R {
         return getRealmWrapper().withRealm(block)
+    }
+
+    /**
+     * Allow you to execute a block with an opened realm. It automatically closes it if necessary (ie. when not in main thread)
+     */
+    suspend fun <R> withRealmSuspend(block: (Realm) -> R): R {
+        return withContext(realmDispatcher) { getRealmWrapper().withRealm(block) }
     }
 
     @MainThread

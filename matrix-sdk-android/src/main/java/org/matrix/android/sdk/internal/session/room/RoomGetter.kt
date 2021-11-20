@@ -30,6 +30,8 @@ import javax.inject.Inject
 internal interface RoomGetter {
     fun getRoom(roomId: String): Room?
 
+    suspend fun getRoomSuspend(roomId: String): Room?
+
     fun getDirectRoomWith(otherUserId: String): String?
 }
 
@@ -41,6 +43,12 @@ internal class DefaultRoomGetter @Inject constructor(
 
     override fun getRoom(roomId: String): Room? {
         return realmSessionProvider.withRealm { realm ->
+            createRoom(realm, roomId)
+        }
+    }
+
+    override suspend fun getRoomSuspend(roomId: String): Room? {
+        return realmSessionProvider.withRealmSuspend { realm ->
             createRoom(realm, roomId)
         }
     }

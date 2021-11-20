@@ -22,6 +22,7 @@ import io.reactivex.Observable
 import io.reactivex.android.MainThreadDisposable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
+import kotlinx.coroutines.runBlocking
 
 private class LiveDataObservable<T>(
         private val liveData: LiveData<T>,
@@ -65,6 +66,14 @@ fun <T> LiveData<T>.asObservable(): Observable<T> {
 internal fun <T> Observable<T>.startWithCallable(supplier: () -> T): Observable<T> {
     val startObservable = Observable
             .fromCallable(supplier)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+    return startWith(startObservable)
+}
+
+internal fun <T> Observable<T>.startWithSuspended(supplier: suspend () -> T): Observable<T> {
+    val startObservable = Observable
+            .fromCallable { runBlocking { supplier() } }
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
     return startWith(startObservable)

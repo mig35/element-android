@@ -190,8 +190,8 @@ internal class WidgetManager @Inject constructor(private val integrationManager:
         createWidgetTask.execute(params)
     }
 
-    fun hasPermissionsToHandleWidgets(roomId: String): Boolean {
-        val powerLevelsEvent = stateEventDataSource.getStateEvent(
+    suspend fun hasPermissionsToHandleWidgets(roomId: String): Boolean {
+        val powerLevelsEvent = stateEventDataSource.getStateEventSuspend(
                 roomId = roomId,
                 eventType = EventType.STATE_ROOM_POWER_LEVELS,
                 stateKey = QueryStringValue.NoCondition

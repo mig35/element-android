@@ -165,7 +165,7 @@ class RoomDevToolViewModel @AssistedInject constructor(
 
         viewModelScope.launch {
             try {
-                val room = session.getRoom(initialState.roomId)
+                val room = session.getRoomSuspend(initialState.roomId)
                         ?: throw IllegalArgumentException(stringProvider.getString(R.string.room_error_not_found))
 
                 val adapter = MoshiProvider.providesMoshi()
@@ -199,7 +199,7 @@ class RoomDevToolViewModel @AssistedInject constructor(
         setState { copy(modalLoading = Loading()) }
         viewModelScope.launch {
             try {
-                val room = session.getRoom(initialState.roomId)
+                val room = session.getRoomSuspend(initialState.roomId)
                         ?: throw IllegalArgumentException(stringProvider.getString(R.string.room_error_not_found))
 
                 val adapter = MoshiProvider.providesMoshi()

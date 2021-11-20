@@ -70,7 +70,7 @@ class RequireActiveMembershipViewModel @AssistedInject constructor(
         roomIdFlow
                 .unwrap()
                 .flatMapLatest { roomId ->
-                    val room = session.getRoom(roomId) ?: return@flatMapLatest flow {
+                    val room = session.getRoomSuspend(roomId) ?: return@flatMapLatest flow {
                         val emptyResult = Optional.empty<RequireActiveMembershipViewEvents.RoomLeft>()
                         emit(emptyResult)
                     }

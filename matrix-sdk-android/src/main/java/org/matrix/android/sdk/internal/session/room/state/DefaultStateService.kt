@@ -54,6 +54,10 @@ internal class DefaultStateService @AssistedInject constructor(@Assisted private
         return stateEventDataSource.getStateEvent(roomId, eventType, stateKey)
     }
 
+    override suspend fun getStateEventSuspended(eventType: String, stateKey: QueryStringValue): Event? {
+        return stateEventDataSource.getStateEventSuspend(roomId, eventType, stateKey)
+    }
+
     override fun getStateEventLive(eventType: String, stateKey: QueryStringValue): LiveData<Optional<Event>> {
         return stateEventDataSource.getStateEventLive(roomId, eventType, stateKey)
     }

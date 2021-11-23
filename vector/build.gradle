@@ -67,7 +67,7 @@ static def gitBranchName() {
 
 // For Google Play build, build on any other branch than main will have a "-dev" suffix
 static def getGplayVersionSuffix() {
-    if (gitBranchName() == "main") {
+    if (gitBranchName() == "bolica") {
         return ""
     } else {
         return "-dev"
@@ -221,6 +221,7 @@ android {
             storeFile file('./signature/debug.keystore')
             storePassword 'android'
         }
+
     }
 
     buildTypes {
@@ -238,6 +239,7 @@ android {
 
         release {
             resValue "string", "app_name", "BoLiCa"
+            signingConfig signingConfigs.release
 
             resValue "bool", "debug_mode", "false"
             buildConfigField "boolean", "LOW_PRIVACY_LOG_ENABLE", "false"
@@ -258,7 +260,7 @@ android {
 
     productFlavors {
         gplay {
-            applicationId "com.bolica.riot"
+            applicationId "com.bolica.element"
             apply plugin: 'com.google.gms.google-services'
             afterEvaluate {
                 tasks.matching { it.name.contains("GoogleServices") && !it.name.contains("Gplay") }*.enabled = false

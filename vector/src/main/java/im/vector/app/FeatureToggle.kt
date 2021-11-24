@@ -24,4 +24,5 @@ object FeatureToggle {
     const val DISABLE_ENC_BY_DEFAULT = ENABLE_CHANGES
     const val ROUTE_USER_DIRECTLY_TO_LOGIN = ENABLE_CHANGES
     const val DISABLE_SLASH_COMMANDS = false
+    const val DISABLE_FULL_ENCRYPTION = ENABLE_CHANGES
 }

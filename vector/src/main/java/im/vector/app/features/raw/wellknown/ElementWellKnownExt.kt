@@ -16,6 +16,7 @@
 
 package im.vector.app.features.raw.wellknown
 
+import im.vector.app.FeatureToggle
 import org.matrix.android.sdk.api.MatrixPatterns.getDomain
 import org.matrix.android.sdk.api.auth.data.SessionParams
 import org.matrix.android.sdk.api.extensions.tryOrNull
@@ -28,4 +29,6 @@ suspend fun RawService.getElementWellknown(sessionParams: SessionParams): Elemen
             ?.let { ElementWellKnownMapper.from(it) }
 }
 
-fun ElementWellKnown.isE2EByDefault() = elementE2E?.e2eDefault ?: riotE2E?.e2eDefault ?: true
+fun ElementWellKnown?.isE2EByDefault(): Boolean =
+        if (FeatureToggle.DISABLE_FULL_ENCRYPTION) false
+        else this?.elementE2E?.e2eDefault ?: this?.riotE2E?.e2eDefault ?: true

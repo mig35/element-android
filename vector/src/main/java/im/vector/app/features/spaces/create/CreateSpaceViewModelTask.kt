@@ -21,7 +21,6 @@ import im.vector.app.core.platform.ViewModelTask
 import im.vector.app.features.raw.wellknown.getElementWellknown
 import im.vector.app.features.raw.wellknown.isE2EByDefault
 import im.vector.app.features.settings.VectorPreferences
-import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.raw.RawService
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.homeserver.HomeServerCapabilities
@@ -101,11 +100,9 @@ class CreateSpaceViewModelTask @Inject constructor(
         val childErrors = mutableMapOf<String, Throwable>()
         val childIds = mutableListOf<String>()
 
-        val e2eByDefault = tryOrNull {
+        val e2eByDefault =
             rawService.getElementWellknown(session.sessionParams)
-                    ?.isE2EByDefault()
-                    ?: true
-        } ?: true
+                    .isE2EByDefault()
 
         params.defaultRooms
                 .filter { it.isNotBlank() }

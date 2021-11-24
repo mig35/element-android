@@ -36,8 +36,7 @@ class DirectRoomHelper @Inject constructor(
             roomId = existingRoomId
         } else {
             val adminE2EByDefault = rawService.getElementWellknown(session.sessionParams)
-                    ?.isE2EByDefault()
-                    ?: true
+                    .isE2EByDefault()
 
             val roomParams = CreateRoomParams().apply {
                 invitedUserIds.add(userId)

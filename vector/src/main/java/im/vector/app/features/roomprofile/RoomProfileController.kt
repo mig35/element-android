@@ -18,6 +18,7 @@
 package im.vector.app.features.roomprofile
 
 import com.airbnb.epoxy.TypedEpoxyController
+import im.vector.app.FeatureToggle
 import im.vector.app.R
 import im.vector.app.core.epoxy.expandableTextItem
 import im.vector.app.core.epoxy.profiles.buildProfileAction
@@ -240,7 +241,7 @@ class RoomProfileController @Inject constructor(
     }
 
     private fun buildEncryptionAction(actionPermissions: RoomProfileViewState.ActionPermissions, roomSummary: RoomSummary) {
-        if (!roomSummary.isEncrypted) {
+        if (!roomSummary.isEncrypted && !FeatureToggle.DISABLE_FULL_ENCRYPTION) {
             if (actionPermissions.canEnableEncryption) {
                 buildProfileAction(
                         id = "enableEncryption",

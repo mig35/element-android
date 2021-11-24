@@ -105,11 +105,9 @@ class CreateRoomViewModel @AssistedInject constructor(@Assisted private val init
     private fun initAdminE2eByDefault() {
         viewModelScope.launch(Dispatchers.IO) {
             if (!FeatureToggle.DISABLE_ENC_BY_DEFAULT) {
-                adminE2EByDefault = tryOrNull {
-                    rawService.getElementWellknown(session.sessionParams)
-                            ?.isE2EByDefault()
-                            ?: true
-                } ?: true
+                adminE2EByDefault =
+                        rawService.getElementWellknown(session.sessionParams)
+                            .isE2EByDefault()
             }
 
             setState {

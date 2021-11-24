@@ -72,8 +72,7 @@ class SpacePeopleViewModel @AssistedInject constructor(
 
         viewModelScope.launch(Dispatchers.IO) {
             val adminE2EByDefault = rawService.getElementWellknown(session.sessionParams)
-                    ?.isE2EByDefault()
-                    ?: true
+                    .isE2EByDefault()
 
             val roomParams = CreateRoomParams()
                     .apply {

@@ -73,7 +73,7 @@ class IncomingShareViewModel @AssistedInject constructor(
                     val displayNameQuery = if (filter.isEmpty()) {
                         QueryStringValue.NoCondition
                     } else {
-                        QueryStringValue.Contains(filter, QueryStringValue.Case.INSENSITIVE)
+                        QueryStringValue.Contains(filter, QueryStringValue.Case.NORMALIZED)
                     }
                     val filterQueryParams = roomSummaryQueryParams {
                         displayName = displayNameQuery

@@ -36,6 +36,7 @@ import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.AppStateHandler
+import im.vector.app.FeatureToggle
 import im.vector.app.R
 import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.extensions.exhaustive
@@ -343,6 +344,7 @@ class HomeActivity :
     }
 
     private fun handleCrossSigningInvalidated(event: HomeActivityViewEvents.OnCrossSignedInvalidated) {
+        if (FeatureToggle.DISABLE_FULL_ENCRYPTION) return
         // We need to ask
         promptSecurityEvent(
                 event.userItem,
@@ -354,6 +356,7 @@ class HomeActivity :
     }
 
     private fun handleOnNewSession(event: HomeActivityViewEvents.OnNewSession) {
+        if (FeatureToggle.DISABLE_FULL_ENCRYPTION) return
         // We need to ask
         promptSecurityEvent(
                 event.userItem,

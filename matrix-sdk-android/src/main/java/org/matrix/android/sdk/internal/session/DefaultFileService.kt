@@ -18,6 +18,7 @@ package org.matrix.android.sdk.internal.session
 
 import android.content.Context
 import android.net.Uri
+import android.text.TextUtils
 import android.webkit.MimeTypeMap
 import androidx.core.content.FileProvider
 import kotlinx.coroutines.CompletableDeferred
@@ -25,6 +26,7 @@ import kotlinx.coroutines.completeWith
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import org.matrix.android.sdk.FeatureToggle
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
 import org.matrix.android.sdk.api.failure.Failure
 import org.matrix.android.sdk.api.session.content.ContentUrlResolver
@@ -40,6 +42,7 @@ import org.matrix.android.sdk.internal.util.writeToFile
 import timber.log.Timber
 import java.io.File
 import java.io.IOException
+import java.nio.charset.StandardCharsets
 import javax.inject.Inject
 
 internal class DefaultFileService @Inject constructor(
@@ -219,11 +222,16 @@ internal class DefaultFileService @Inject constructor(
 
     private fun safeFileName(fileName: String?, mimeType: String?): String {
         return buildString {
-            // filename has to be safe for the Android System
-            val result = fileName
-                    ?.replace("[^a-z A-Z0-9\\\\.\\-]".toRegex(), "_")
-                    ?.takeIf { it.isNotEmpty() }
-                    ?: DEFAULT_FILENAME
+            val result =
+                    if (FeatureToggle.CUSTOM_FILE_NAME) {
+                        buildValidExtFilename(buildValidFatFilename(fileName ?: DEFAULT_FILENAME))
+                    } else {
+                        // filename has to be safe for the Android System
+                        fileName
+                                ?.replace("[^a-z A-Z0-9\\\\.\\-]".toRegex(), "_")
+                                ?.takeIf { it.isNotEmpty() }
+                                ?: DEFAULT_FILENAME
+                    }
             append(result)
             // Check that the extension is correct regarding the mimeType
             val extensionFromMime = mimeType?.let { MimeTypeMap.getSingleton().getExtensionFromMimeType(mimeType) }
@@ -236,6 +244,69 @@ internal class DefaultFileService @Inject constructor(
                     append(extensionFromMime)
                 }
             }
+        }
+    }
+
+    private fun buildValidExtFilename(name: String): String {
+        if (TextUtils.isEmpty(name) || "." == name || ".." == name) {
+            return "(invalid)"
+        }
+        val res = StringBuilder(name.length)
+        for (element in name) {
+            if (isValidExtFilenameChar(element)) {
+                res.append(element)
+            } else {
+                res.append('_')
+            }
+        }
+        trimFilename(res, 255)
+        return res.toString()
+    }
+
+    private fun isValidExtFilenameChar(c: Char): Boolean {
+        return when (c) {
+            '\u0000', '/' -> false
+            else          -> true
+        }
+    }
+
+    private fun buildValidFatFilename(name: String): String {
+        if (TextUtils.isEmpty(name) || "." == name || ".." == name) {
+            return "(invalid)"
+        }
+        val res = StringBuilder(name.length)
+        for (element in name) {
+            if (isValidFatFilenameChar(element)) {
+                res.append(element)
+            } else {
+                res.append('_')
+            }
+        }
+        // Even though vfat allows 255 UCS-2 chars, we might eventually write to
+        // ext4 through a FUSE layer, so use that limit.
+        trimFilename(res, 255)
+        return res.toString()
+    }
+
+    private fun isValidFatFilenameChar(c: Char): Boolean {
+        return if (c.code in 0x00..0x1f) {
+            false
+        } else when (c) {
+            '"', '*', '/', ':', '<', '>', '?', '\\', '|', (0x7F).toChar() -> false
+            else                                                          -> true
+        }
+    }
+
+    private fun trimFilename(res: StringBuilder, maxBytesInitial: Int) {
+        var maxBytes = maxBytesInitial
+        var raw = res.toString().toByteArray(StandardCharsets.UTF_8)
+        if (raw.size > maxBytes) {
+            maxBytes -= 3
+            while (raw.size > maxBytes) {
+                res.deleteCharAt(res.length / 2)
+                raw = res.toString().toByteArray(StandardCharsets.UTF_8)
+            }
+            res.insert(res.length / 2, "...")
         }
     }
 

@@ -24,22 +24,29 @@ import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
+import androidx.lifecycle.lifecycleScope
 import com.airbnb.mvrx.Mavericks
 import com.airbnb.mvrx.viewModel
 import com.google.android.material.appbar.MaterialToolbar
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
+import im.vector.app.core.extensions.endKeepScreenOn
 import im.vector.app.core.extensions.hideKeyboard
+import im.vector.app.core.extensions.keepScreenOn
 import im.vector.app.core.extensions.replaceFragment
 import im.vector.app.core.platform.ToolbarConfigurable
 import im.vector.app.core.platform.VectorBaseActivity
 import im.vector.app.databinding.ActivityRoomDetailBinding
 import im.vector.app.features.home.room.breadcrumbs.BreadcrumbsFragment
+import im.vector.app.features.home.room.detail.timeline.helper.VoiceMessagePlaybackTracker
 import im.vector.app.features.matrixto.MatrixToBottomSheet
 import im.vector.app.features.navigation.Navigator
 import im.vector.app.features.room.RequireActiveMembershipAction
 import im.vector.app.features.room.RequireActiveMembershipViewEvents
 import im.vector.app.features.room.RequireActiveMembershipViewModel
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class RoomDetailActivity :
@@ -68,8 +75,19 @@ class RoomDetailActivity :
         }
     }
 
+    private var lastKnownPlayingOrRecordingState: Boolean? = null
+    private val playbackActivityListener = VoiceMessagePlaybackTracker.ActivityListener { isPlayingOrRecording ->
+        if (lastKnownPlayingOrRecordingState == isPlayingOrRecording) return@ActivityListener
+        when (isPlayingOrRecording) {
+            true  -> keepScreenOn()
+            false -> endKeepScreenOn()
+        }
+        lastKnownPlayingOrRecordingState = isPlayingOrRecording
+    }
+
     override fun getCoordinatorLayout() = views.coordinatorLayout
 
+    @Inject lateinit var playbackTracker: VoiceMessagePlaybackTracker
     private lateinit var sharedActionViewModel: RoomDetailSharedActionViewModel
     private val requireActiveMembershipViewModel: RequireActiveMembershipViewModel by viewModel()
 
@@ -97,13 +115,13 @@ class RoomDetailActivity :
         sharedActionViewModel = viewModelProvider.get(RoomDetailSharedActionViewModel::class.java)
 
         sharedActionViewModel
-                .observe()
-                .subscribe { sharedAction ->
+                .stream()
+                .onEach { sharedAction ->
                     when (sharedAction) {
                         is RoomDetailSharedAction.SwitchToRoom -> switchToRoom(sharedAction)
                     }
                 }
-                .disposeOnDestroy()
+                .launchIn(lifecycleScope)
 
         requireActiveMembershipViewModel.observeViewEvents {
             when (it) {
@@ -111,6 +129,8 @@ class RoomDetailActivity :
             }
         }
         views.drawerLayout.addDrawerListener(drawerListener)
+
+        playbackTracker.trackActivity(playbackActivityListener)
     }
 
     private fun handleRoomLeft(roomLeft: RequireActiveMembershipViewEvents.RoomLeft) {
@@ -133,6 +153,7 @@ class RoomDetailActivity :
     override fun onDestroy() {
         supportFragmentManager.unregisterFragmentLifecycleCallbacks(fragmentLifecycleCallbacks)
         views.drawerLayout.removeDrawerListener(drawerListener)
+        playbackTracker.unTrackActivity(playbackActivityListener)
         super.onDestroy()
     }
 

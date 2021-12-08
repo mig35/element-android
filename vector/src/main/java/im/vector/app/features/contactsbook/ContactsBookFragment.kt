@@ -21,25 +21,28 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
+import androidx.lifecycle.lifecycleScope
 import com.airbnb.mvrx.activityViewModel
 import com.airbnb.mvrx.withState
-import com.jakewharton.rxbinding3.widget.checkedChanges
-import com.jakewharton.rxbinding3.widget.textChanges
 import im.vector.app.core.extensions.cleanup
 import im.vector.app.core.extensions.configureWith
+import im.vector.app.core.extensions.exhaustive
 import im.vector.app.core.extensions.hideKeyboard
 import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.core.utils.showIdentityServerConsentDialog
 import im.vector.app.databinding.FragmentContactsBookBinding
-import im.vector.app.features.navigation.SettingsActivityPayload
 import im.vector.app.features.userdirectory.PendingSelection
 import im.vector.app.features.userdirectory.UserListAction
 import im.vector.app.features.userdirectory.UserListSharedAction
 import im.vector.app.features.userdirectory.UserListSharedActionViewModel
 import im.vector.app.features.userdirectory.UserListViewModel
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import org.matrix.android.sdk.api.session.identity.ThreePid
 import org.matrix.android.sdk.api.session.user.model.User
-import java.util.concurrent.TimeUnit
+import reactivecircus.flowbinding.android.widget.checkedChanges
+import reactivecircus.flowbinding.android.widget.textChanges
 import javax.inject.Inject
 
 class ContactsBookFragment @Inject constructor(
@@ -65,39 +68,44 @@ class ContactsBookFragment @Inject constructor(
         setupConsentView()
         setupOnlyBoundContactsView()
         setupCloseView()
+        contactsBookViewModel.observeViewEvents {
+            when (it) {
+                is ContactsBookViewEvents.Failure             -> showFailure(it.throwable)
+                is ContactsBookViewEvents.OnPoliciesRetrieved -> showConsentDialog(it)
+            }.exhaustive
+        }
     }
 
     private fun setupConsentView() {
         views.phoneBookSearchForMatrixContacts.setOnClickListener {
-            withState(contactsBookViewModel) { state ->
-                requireContext().showIdentityServerConsentDialog(
-                        state.identityServerUrl,
-                        policyLinkCallback = {
-                            navigator.openSettings(requireContext(), SettingsActivityPayload.DiscoverySettings(expandIdentityPolicies = true))
-                        },
-                        consentCallBack = { contactsBookViewModel.handle(ContactsBookAction.UserConsentGranted) }
-                )
-            }
+            contactsBookViewModel.handle(ContactsBookAction.UserConsentRequest)
         }
+    }
+
+    private fun showConsentDialog(event: ContactsBookViewEvents.OnPoliciesRetrieved) {
+        requireContext().showIdentityServerConsentDialog(
+                event.identityServerWithTerms,
+                consentCallBack = { contactsBookViewModel.handle(ContactsBookAction.UserConsentGranted) }
+        )
     }
 
     private fun setupOnlyBoundContactsView() {
         views.phoneBookOnlyBoundContacts.checkedChanges()
-                .subscribe {
+                .onEach {
                     contactsBookViewModel.handle(ContactsBookAction.OnlyBoundContacts(it))
                 }
-                .disposeOnDestroyView()
+                .launchIn(viewLifecycleOwner.lifecycleScope)
     }
 
     private fun setupFilterView() {
         views.phoneBookFilter
                 .textChanges()
                 .skipInitialValue()
-                .debounce(300, TimeUnit.MILLISECONDS)
-                .subscribe {
+                .debounce(300)
+                .onEach {
                     contactsBookViewModel.handle(ContactsBookAction.FilterWith(it.toString()))
                 }
-                .disposeOnDestroyView()
+                .launchIn(viewLifecycleOwner.lifecycleScope)
     }
 
     override fun onDestroyView() {

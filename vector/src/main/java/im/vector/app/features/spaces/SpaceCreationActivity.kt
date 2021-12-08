@@ -26,7 +26,6 @@ import com.airbnb.mvrx.withState
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
-import im.vector.app.core.extensions.toMvRxBundle
 import im.vector.app.core.platform.SimpleFragmentActivity
 import im.vector.app.features.spaces.create.ChoosePrivateSpaceTypeFragment
 import im.vector.app.features.spaces.create.ChooseSpaceTypeFragment
@@ -71,7 +70,7 @@ class SpaceCreationActivity : SimpleFragmentActivity() {
     override fun initUiAndData() {
         super.initUiAndData()
 
-        viewModel.subscribe(this) {
+        viewModel.onEach {
             renderState(it)
         }
 
@@ -121,7 +120,7 @@ class SpaceCreationActivity : SimpleFragmentActivity() {
     }
 
     private fun navigateToFragment(fragmentClass: Class<out Fragment>) {
-        val frag = supportFragmentManager.findFragmentByTag(fragmentClass.name) ?: createFragment(fragmentClass, Bundle().toMvRxBundle())
+        val frag = supportFragmentManager.findFragmentByTag(fragmentClass.name) ?: createFragment(fragmentClass)
         supportFragmentManager.beginTransaction()
                 .setCustomAnimations(R.anim.fade_in, R.anim.fade_out, R.anim.fade_in, R.anim.fade_out)
                 .replace(R.id.container,

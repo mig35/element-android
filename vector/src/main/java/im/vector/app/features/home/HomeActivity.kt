@@ -49,6 +49,7 @@ import im.vector.app.core.pushers.PushersManager
 import im.vector.app.databinding.ActivityHomeBinding
 import im.vector.app.features.MainActivity
 import im.vector.app.features.MainActivityArgs
+import im.vector.app.features.analytics.accountdata.AnalyticsAccountDataViewModel
 import im.vector.app.features.disclaimer.showDisclaimerDialog
 import im.vector.app.features.matrixto.MatrixToBottomSheet
 import im.vector.app.features.navigation.Navigator
@@ -104,6 +105,8 @@ class HomeActivity :
     private lateinit var sharedActionViewModel: HomeSharedActionViewModel
 
     private val homeActivityViewModel: HomeActivityViewModel by viewModel()
+    @Suppress("UNUSED")
+    private val analyticsAccountDataViewModel: AnalyticsAccountDataViewModel by viewModel()
 
     private val serverBackupStatusViewModel: ServerBackupStatusViewModel by viewModel()
     private val promoteRestrictedViewModel: PromoteRestrictedViewModel by viewModel()
@@ -176,8 +179,8 @@ class HomeActivity :
         sharedActionViewModel = viewModelProvider.get(HomeSharedActionViewModel::class.java)
         views.drawerLayout.addDrawerListener(drawerListener)
         if (isFirstCreation()) {
-            replaceFragment(R.id.homeDetailFragmentContainer, HomeDetailFragment::class.java)
-            replaceFragment(R.id.homeDrawerFragmentContainer, HomeDrawerFragment::class.java)
+            replaceFragment(views.homeDetailFragmentContainer, HomeDetailFragment::class.java)
+            replaceFragment(views.homeDrawerFragmentContainer, HomeDrawerFragment::class.java)
         }
 
         sharedActionViewModel
@@ -193,7 +196,7 @@ class HomeActivity :
                             // When switching from space to group or group to space, we need to reload the fragment
                             // To be removed when dropping legacy groups
                             if (sharedAction.clearFragment) {
-                                replaceFragment(R.id.homeDetailFragmentContainer, HomeDetailFragment::class.java, allowStateLoss = true)
+                                replaceFragment(views.homeDetailFragmentContainer, HomeDetailFragment::class.java, allowStateLoss = true)
                             } else {
                                 // nop
                             }
@@ -244,6 +247,7 @@ class HomeActivity :
                 is HomeActivityViewEvents.OnNewSession                  -> handleOnNewSession(it)
                 HomeActivityViewEvents.PromptToEnableSessionPush        -> handlePromptToEnablePush()
                 is HomeActivityViewEvents.OnCrossSignedInvalidated      -> handleCrossSigningInvalidated(it)
+                HomeActivityViewEvents.ShowAnalyticsOptIn               -> handleShowAnalyticsOptIn()
             }.exhaustive
         }
         homeActivityViewModel.onEach { renderState(it) }
@@ -268,6 +272,11 @@ class HomeActivity :
         if (isFirstCreation()) {
             handleIntent(intent)
         }
+        homeActivityViewModel.handle(HomeActivityViewActions.ViewStarted)
+    }
+
+    private fun handleShowAnalyticsOptIn() {
+        navigator.openAnalyticsOptIn(this)
     }
 
     private fun handleIntent(intent: Intent?) {

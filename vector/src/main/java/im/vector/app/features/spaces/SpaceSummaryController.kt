@@ -17,6 +17,7 @@
 package im.vector.app.features.spaces
 
 import com.airbnb.epoxy.EpoxyController
+import im.vector.app.FeatureToggle
 import im.vector.app.R
 import im.vector.app.RoomGroupingMethod
 import im.vector.app.core.resources.ColorProvider
@@ -105,10 +106,12 @@ class SpaceSummaryController @Inject constructor(
                                  expandedStates: Map<String, Boolean>,
                                  homeCount: RoomAggregateNotificationCount) {
         val host = this
-        spaceBetaHeaderItem {
-            id("beta_header")
-            clickAction {
-                host.callback?.sendFeedBack()
+        if (!FeatureToggle.DISABLE_ROUTE_SPACE_BETA_HEADER) {
+            spaceBetaHeaderItem {
+                id("beta_header")
+                clickAction {
+                    host.callback?.sendFeedBack()
+                }
             }
         }
 

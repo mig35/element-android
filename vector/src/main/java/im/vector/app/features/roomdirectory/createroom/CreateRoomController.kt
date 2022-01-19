@@ -19,6 +19,7 @@ package im.vector.app.features.roomdirectory.createroom
 import com.airbnb.epoxy.TypedEpoxyController
 import com.airbnb.mvrx.Fail
 import com.airbnb.mvrx.Loading
+import im.vector.app.FeatureToggle
 import im.vector.app.R
 import im.vector.app.core.epoxy.dividerItem
 import im.vector.app.core.epoxy.profiles.buildProfileAction
@@ -156,23 +157,25 @@ class CreateRoomController @Inject constructor(
             dividerItem {
                 id("divider0")
             }
-            // Room encryption for private room
-            formSwitchItem {
-                id("encryption")
-                enabled(enableFormElement)
-                title(host.stringProvider.getString(R.string.create_room_encryption_title))
-                summary(
-                        if (viewState.hsAdminHasDisabledE2E) {
-                            host.stringProvider.getString(R.string.settings_hs_admin_e2e_disabled)
-                        } else {
-                            host.stringProvider.getString(R.string.create_room_encryption_description)
-                        }
-                )
+            if (!FeatureToggle.DISABLE_FULL_ENCRYPTION) {
+                // Room encryption for private room
+                formSwitchItem {
+                    id("encryption")
+                    enabled(enableFormElement)
+                    title(host.stringProvider.getString(R.string.create_room_encryption_title))
+                    summary(
+                            if (viewState.hsAdminHasDisabledE2E) {
+                                host.stringProvider.getString(R.string.settings_hs_admin_e2e_disabled)
+                            } else {
+                                host.stringProvider.getString(R.string.create_room_encryption_description)
+                            }
+                    )
 
-                switchChecked(viewState.isEncrypted ?: viewState.defaultEncrypted[viewState.roomJoinRules].orFalse())
+                    switchChecked(viewState.isEncrypted ?: viewState.defaultEncrypted[viewState.roomJoinRules].orFalse())
 
-                listener { value ->
-                    host.listener?.setIsEncrypted(value)
+                    listener { value ->
+                        host.listener?.setIsEncrypted(value)
+                    }
                 }
             }
         }

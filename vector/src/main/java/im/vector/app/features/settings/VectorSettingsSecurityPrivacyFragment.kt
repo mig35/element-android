@@ -34,6 +34,7 @@ import androidx.preference.SwitchPreference
 import androidx.recyclerview.widget.RecyclerView
 import com.airbnb.mvrx.fragmentViewModel
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import im.vector.app.FeatureToggle
 import im.vector.app.R
 import im.vector.app.config.analyticsConfig
 import im.vector.app.core.di.ActiveSessionHolder
@@ -171,6 +172,7 @@ class VectorSettingsSecurityPrivacyFragment @Inject constructor(
                     rawService
                             .getElementWellknown(session.sessionParams)
                             .isE2EByDefault() == false
+                            && !FeatureToggle.DISABLE_FULL_ENCRYPTION
         }
     }
 

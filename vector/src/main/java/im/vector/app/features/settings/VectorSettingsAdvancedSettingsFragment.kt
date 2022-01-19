@@ -17,9 +17,13 @@
 package im.vector.app.features.settings
 
 import androidx.preference.Preference
+import androidx.preference.PreferenceCategory
 import androidx.preference.SeekBarPreference
+import androidx.preference.get
+import im.vector.app.BuildConfig
 import im.vector.app.R
 import im.vector.app.core.platform.VectorBaseActivity
+import im.vector.app.core.preference.VectorPreference
 import im.vector.app.core.preference.VectorPreferenceCategory
 import im.vector.app.core.preference.VectorSwitchPreference
 import im.vector.app.features.rageshake.RageShake
@@ -34,9 +38,13 @@ class VectorSettingsAdvancedSettingsFragment : VectorSettingsBaseFragment() {
     override fun onResume() {
         super.onResume()
 
-        rageshake = (activity as? VectorBaseActivity<*>)?.rageShake
-        rageshake?.interceptor = {
-            (activity as? VectorBaseActivity<*>)?.showSnackbar(getString(R.string.rageshake_detected))
+        val showDeveloperPreferences = BuildConfig.DEBUG
+        preferenceScreen.get<PreferenceCategory>("settings_developer_mode")?.isVisible = showDeveloperPreferences
+        if (showDeveloperPreferences) {
+            rageshake = (activity as? VectorBaseActivity<*>)?.rageShake
+            rageshake?.interceptor = {
+                (activity as? VectorBaseActivity<*>)?.showSnackbar(getString(R.string.rageshake_detected))
+            }
         }
     }
 

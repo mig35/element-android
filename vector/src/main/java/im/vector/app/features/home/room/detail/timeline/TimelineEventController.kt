@@ -374,6 +374,7 @@ class TimelineEventController @Inject constructor(private val dateFormatter: Vec
                 val timelineEventsGroup = timelineEventsGroups.getOrNull(event)
                 val params = TimelineItemFactoryParams(
                         event = event,
+                        currentSnapshot = currentSnapshot,
                         prevEvent = prevEvent,
                         nextEvent = nextEvent,
                         nextDisplayableEvent = nextDisplayableEvent,

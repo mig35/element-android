@@ -22,6 +22,7 @@ import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 
 data class TimelineItemFactoryParams(
         val event: TimelineEvent,
+        val currentSnapshot: List<TimelineEvent> = emptyList(), // mig35 change to allow good reply to format
         val prevEvent: TimelineEvent? = null,
         val nextEvent: TimelineEvent? = null,
         val nextDisplayableEvent: TimelineEvent? = null,

@@ -76,11 +76,40 @@
         android:visibility="gone"
         tools:visibility="visible" />
 
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/viewStubReplyToContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/messageMemberNameView"
+        android:layout_toEndOf="@id/messageStartGuideline">
+
+        <View
+            android:id="@+id/blockQuote"
+            android:layout_width="4dp"
+            android:layout_height="0dp"
+            android:layout_marginStart="12dp"
+            android:alpha="0.08"
+            android:background="?vctr_content_primary"
+            app:layout_constraintBottom_toBottomOf="@+id/replyToStub"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/replyToStub" />
+
+        <FrameLayout
+            android:id="@+id/replyToStub"
+            style="@style/TimelineContentStubBaseParams"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/blockQuote"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
     <FrameLayout
         android:id="@+id/viewStubContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/messageMemberNameView"
+        android:layout_below="@id/viewStubReplyToContainer"
         android:layout_marginEnd="8dp"
         android:layout_toStartOf="@id/messageSendStateImageView"
         android:layout_toEndOf="@id/messageStartGuideline"

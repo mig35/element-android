@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 New Vector Ltd
+ * Copyright (c) 2022 New Vector Ltd
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,12 @@
  * limitations under the License.
  */
 
-package im.vector.app
+package im.vector.app.features.home.room.detail.timeline.item
 
-object FeatureToggle {
+import com.airbnb.epoxy.EpoxyModelClass
+import im.vector.app.R
 
-    private const val ENABLE_CHANGES = true
+@EpoxyModelClass(layout = R.layout.item_timeline_event_base)
+abstract class ReplyToMessageItem : AbsMessageItem<MessageTextItem.Holder>() {
 
-    const val DISABLE_SERVER_CHANGE = ENABLE_CHANGES
-    const val DISABLE_ENC_BY_DEFAULT = ENABLE_CHANGES
-    const val ROUTE_USER_DIRECTLY_TO_LOGIN = ENABLE_CHANGES
-    const val DISABLE_SLASH_COMMANDS = false
-    const val DISABLE_FULL_ENCRYPTION = ENABLE_CHANGES
-    const val DISABLE_ROUTE_SPACE_BETA_HEADER = ENABLE_CHANGES
-    const val DISABLE_ANALYTICS = ENABLE_CHANGES
 }

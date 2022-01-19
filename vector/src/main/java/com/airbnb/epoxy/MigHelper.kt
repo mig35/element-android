@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 New Vector Ltd
+ * Copyright (c) 2022 New Vector Ltd
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,18 @@
  * limitations under the License.
  */
 
-package im.vector.app
+package com.airbnb.epoxy
 
-object FeatureToggle {
+import android.view.View
+import android.view.ViewParent
+import im.vector.app.features.home.room.detail.timeline.item.AbsBaseMessageItem
 
-    private const val ENABLE_CHANGES = true
+object MigHelper {
 
-    const val DISABLE_SERVER_CHANGE = ENABLE_CHANGES
-    const val DISABLE_ENC_BY_DEFAULT = ENABLE_CHANGES
-    const val ROUTE_USER_DIRECTLY_TO_LOGIN = ENABLE_CHANGES
-    const val DISABLE_SLASH_COMMANDS = false
-    const val DISABLE_FULL_ENCRYPTION = ENABLE_CHANGES
-    const val DISABLE_ROUTE_SPACE_BETA_HEADER = ENABLE_CHANGES
-    const val DISABLE_ANALYTICS = ENABLE_CHANGES
+    fun <H : AbsBaseMessageItem.Holder> createViewHolder(messageItem: AbsBaseMessageItem<H>, parent: ViewParent): H =
+            messageItem.createNewHolder(parent)
+
+    fun bindHolder(holder: EpoxyHolder, view: View) {
+        holder.bindView(view)
+    }
 }

@@ -9,5 +9,6 @@
         android:icon="@drawable/ic_send"
         android:title="@string/send_bug_report"
         app:iconTint="?colorPrimary"
+        android:visible="false"
         app:showAsAction="always" />
 </menu>

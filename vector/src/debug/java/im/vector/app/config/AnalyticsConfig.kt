@@ -17,10 +17,11 @@
 package im.vector.app.config
 
 import im.vector.app.BuildConfig
+import im.vector.app.FeatureToggle
 import im.vector.app.features.analytics.AnalyticsConfig
 
 val analyticsConfig: AnalyticsConfig = object : AnalyticsConfig {
-    override val isEnabled = BuildConfig.APPLICATION_ID == "im.vector.app.debug"
+    override val isEnabled = !FeatureToggle.DISABLE_ANALYTICS && BuildConfig.APPLICATION_ID == "im.vector.app.debug"
     override val postHogHost = "https://posthog-poc.lab.element.dev"
     override val postHogApiKey = "rs-pJjsYJTuAkXJfhaMmPUNBhWliDyTKLOOxike6ck8"
     override val policyLink = "https://element.io/cookie-policy"

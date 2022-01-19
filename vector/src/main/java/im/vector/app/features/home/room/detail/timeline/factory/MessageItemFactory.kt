@@ -17,14 +17,18 @@
 package im.vector.app.features.home.room.detail.timeline.factory
 
 import android.text.Spannable
+import android.text.SpannableString
 import android.text.SpannableStringBuilder
 import android.text.Spanned
 import android.text.TextPaint
 import android.text.style.AbsoluteSizeSpan
 import android.text.style.ClickableSpan
 import android.text.style.ForegroundColorSpan
+import android.text.style.URLSpan
 import android.view.View
+import androidx.core.text.getSpans
 import dagger.Lazy
+import im.vector.app.DefaultTimelineEventControllerCallback
 import im.vector.app.R
 import im.vector.app.core.epoxy.ClickListener
 import im.vector.app.core.epoxy.VectorEpoxyModel
@@ -41,6 +45,7 @@ import im.vector.app.features.home.room.detail.timeline.helper.MessageInformatio
 import im.vector.app.features.home.room.detail.timeline.helper.MessageItemAttributesFactory
 import im.vector.app.features.home.room.detail.timeline.helper.TimelineMediaSizeProvider
 import im.vector.app.features.home.room.detail.timeline.helper.VoiceMessagePlaybackTracker
+import im.vector.app.features.home.room.detail.timeline.item.AbsBaseMessageItem
 import im.vector.app.features.home.room.detail.timeline.item.AbsMessageItem
 import im.vector.app.features.home.room.detail.timeline.item.MessageBlockCodeItem
 import im.vector.app.features.home.room.detail.timeline.item.MessageBlockCodeItem_
@@ -62,6 +67,7 @@ import im.vector.app.features.home.room.detail.timeline.item.VerificationRequest
 import im.vector.app.features.home.room.detail.timeline.item.VerificationRequestItem_
 import im.vector.app.features.home.room.detail.timeline.tools.createLinkMovementMethod
 import im.vector.app.features.home.room.detail.timeline.tools.linkify
+import im.vector.app.features.home.room.detail.timeline.url.PreviewUrlRetriever
 import im.vector.app.features.html.CodeVisitor
 import im.vector.app.features.html.EventHtmlRenderer
 import im.vector.app.features.html.PillsPostProcessor
@@ -69,6 +75,7 @@ import im.vector.app.features.html.SpanUtils
 import im.vector.app.features.html.VectorHtmlCompressor
 import im.vector.app.features.media.ImageContentRenderer
 import im.vector.app.features.media.VideoContentRenderer
+import io.noties.markwon.core.spans.BlockQuoteSpan
 import me.gujun.android.span.span
 import org.commonmark.node.Document
 import org.matrix.android.sdk.api.MatrixUrls.isMxcUrl
@@ -153,6 +160,17 @@ class MessageItemFactory @Inject constructor(
 
 //        val all = event.root.toContent()
 //        val ev = all.toModel<Event>()
+        return buildContent(messageContent, informationData, highlight, attributes, callback, params)
+    }
+
+    private fun buildContent(
+            messageContent: MessageContent,
+            informationData: MessageInformationData,
+            highlight: Boolean,
+            attributes: AbsMessageItem.Attributes,
+            callback: TimelineEventController.Callback?,
+            params: TimelineItemFactoryParams
+    ): VectorEpoxyModel<*>? {
         return when (messageContent) {
             is MessageEmoteContent               -> buildEmoteMessageItem(messageContent, informationData, highlight, callback, attributes)
             is MessageTextContent                -> buildItemForTextContent(messageContent, informationData, highlight, callback, attributes)
@@ -162,7 +180,7 @@ class MessageItemFactory @Inject constructor(
             is MessageFileContent                -> buildFileMessageItem(messageContent, highlight, attributes)
             is MessageAudioContent               -> {
                 if (messageContent.voiceMessageIndicator != null) {
-                    buildVoiceMessageItem(params, messageContent, informationData, highlight, attributes)
+                    buildVoiceMessageItem(messageContent, informationData, highlight, callback, attributes)
                 } else {
                     buildAudioMessageItem(messageContent, informationData, highlight, attributes)
                 }
@@ -171,6 +189,7 @@ class MessageItemFactory @Inject constructor(
             is MessagePollContent                -> buildPollContent(messageContent, informationData, highlight, callback, attributes)
             else                                 -> buildNotHandledMessageItem(messageContent, informationData, highlight, callback, attributes)
         }
+                ?.apply { applyReplyToMessage(messageContent, params) }
     }
 
     private fun buildPollContent(pollContent: MessagePollContent,
@@ -261,11 +280,11 @@ class MessageItemFactory @Inject constructor(
                 .iconRes(R.drawable.ic_headphones)
     }
 
-    private fun buildVoiceMessageItem(params: TimelineItemFactoryParams,
-                                      messageContent: MessageAudioContent,
+    private fun buildVoiceMessageItem(messageContent: MessageAudioContent,
                                       @Suppress("UNUSED_PARAMETER")
                                       informationData: MessageInformationData,
                                       highlight: Boolean,
+                                      callback: TimelineEventController.Callback?,
                                       attributes: AbsMessageItem.Attributes): MessageVoiceItem? {
         val fileUrl = messageContent.getFileUrl()?.let {
             if (informationData.sentByMe && !informationData.sendState.isSent()) {
@@ -277,7 +296,7 @@ class MessageItemFactory @Inject constructor(
 
         val playbackControlButtonClickListener: ClickListener = object : ClickListener {
             override fun invoke(view: View) {
-                params.callback?.onVoiceControlButtonClicked(informationData.eventId, messageContent)
+                callback?.onVoiceControlButtonClicked(informationData.eventId, messageContent)
             }
         }
 
@@ -661,5 +680,106 @@ class MessageItemFactory @Inject constructor(
 
     companion object {
         private const val MAX_NUMBER_OF_EMOJI_FOR_BIG_FONT = 5
+    }
+
+    private fun VectorEpoxyModel<*>.applyReplyToMessage(messageContent: MessageContent, params: TimelineItemFactoryParams) {
+        if (this is AbsMessageItem<*>) {
+            var onReplyClickedAction: (() -> Unit)? = null
+            val replyToEventId = messageContent.relatesTo?.inReplyTo?.eventId ?: return
+
+            @Suppress("UNCHECKED_CAST")
+            val replyToMessageItem = buildReplyToContent(replyToEventId, params) { onReplyClickedAction?.invoke() }
+                    as? AbsBaseMessageItem<AbsMessageItem.Holder>
+
+            this.replyToMessageId = replyToEventId
+            if (replyToMessageItem != null) {
+                this.replyToMessageItem = replyToMessageItem
+                if (this is MessageTextItem && message is Spannable) {
+                    val spannableMessage = message as Spannable
+                    val blockQuoteSpans = spannableMessage.getSpans<BlockQuoteSpan>()
+                    if (blockQuoteSpans.isNotEmpty()) {
+                        val end = blockQuoteSpans.maxOf { spannableMessage.getSpanEnd(it) }
+                        val urlSpan = spannableMessage.getSpans<URLSpan>(end = end).firstOrNull { it.url.contains(replyToEventId) }
+                        if (urlSpan != null) {
+                            onReplyClickedAction = { params.callback?.onUrlClicked(urlSpan.url, "") }
+                        }
+                        val newString = SpannableString(
+                                spannableMessage
+                                        .subSequence(end, spannableMessage.length)
+                                        .trim()
+                        )
+                        message = newString
+                    }
+                }
+            }
+        }
+    }
+
+    private fun buildReplyToContent(
+            replyToEventId: String,
+            params: TimelineItemFactoryParams,
+            onCellClicked: () -> Unit,
+    ): VectorEpoxyModel<*>? {
+        val replyToEvent = params.currentSnapshot.firstOrNull { it.eventId == replyToEventId }
+        if (replyToEvent != null) {
+            val replyToContent = replyToEvent.getLastMessageContent()
+            if (replyToContent != null) {
+                val replyToInformationData = messageInformationDataFactory
+                        .create(TimelineItemFactoryParams(event = replyToEvent))
+                        .copy(time = null)
+                val callback = params.callback
+                val replyCallback =
+                        if (callback != null) {
+                            object : DefaultTimelineEventControllerCallback() {
+                                override fun getPreviewUrlRetriever(): PreviewUrlRetriever =
+                                        callback.getPreviewUrlRetriever()
+
+                                override fun onEventLongClicked(informationData: MessageInformationData, messageContent: Any?, view: View): Boolean =
+                                        false
+
+                                override fun onUrlClicked(url: String, title: String): Boolean =
+                                        callback.onUrlClicked(url, title)
+
+                                override fun onUrlLongClicked(url: String): Boolean =
+                                        callback.onUrlLongClicked(url)
+
+                                override fun onAvatarClicked(informationData: MessageInformationData) {
+                                    callback.onAvatarClicked(informationData)
+                                }
+
+                                override fun onEventCellClicked(informationData: MessageInformationData, messageContent: Any?, view: View) {
+                                    when (replyToContent) {
+                                        is MessageFileContent    -> callback.onEventCellClicked(informationData, messageContent, view)
+                                        is MessageImageVideoItem -> callback.onEventCellClicked(informationData, messageContent, view)
+                                        is MessageVoiceItem      -> callback.onEventCellClicked(informationData, messageContent, view)
+                                        else                     -> onCellClicked()
+                                    }
+                                }
+
+                                override fun onImageMessageClicked(messageImageContent: MessageImageInfoContent, mediaData: ImageContentRenderer.Data, view: View) {
+                                    callback.onImageMessageClicked(messageImageContent, mediaData, view)
+                                }
+
+                                override fun onVideoMessageClicked(messageVideoContent: MessageVideoContent, mediaData: VideoContentRenderer.Data, view: View) {
+                                    callback.onVideoMessageClicked(messageVideoContent, mediaData, view)
+                                }
+                            }
+                        } else null
+
+                return buildContent(
+                        replyToContent,
+                        replyToInformationData,
+                        highlight = false,
+                        attributes = messageItemAttributesFactory.create(
+                                replyToContent,
+                                replyToInformationData,
+                                callback = replyCallback
+                        ),
+                        callback = replyCallback,
+                        params = params,
+                )
+            }
+        }
+        return null
     }
 }

@@ -17,7 +17,9 @@
 package im.vector.app.features.home.room.detail.timeline.item
 
 import android.graphics.Typeface
+import android.view.LayoutInflater
 import android.view.View
+import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
@@ -25,6 +27,7 @@ import androidx.annotation.IdRes
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import com.airbnb.epoxy.EpoxyAttribute
+import com.airbnb.epoxy.MigHelper
 import im.vector.app.R
 import im.vector.app.core.epoxy.ClickListener
 import im.vector.app.core.epoxy.onClick
@@ -44,10 +47,14 @@ abstract class AbsMessageItem<H : AbsMessageItem.Holder> : AbsBaseMessageItem<H>
 
     override fun isCacheable(): Boolean {
         return attributes.informationData.sendStateDecoration != SendStateDecoration.SENT
+                && replyToMessageId == null
     }
 
     @EpoxyAttribute
     lateinit var attributes: Attributes
+
+    var replyToMessageId: String? = null
+    var replyToMessageItem: AbsBaseMessageItem<Holder>? = null
 
     private val _avatarClickListener = object : ClickListener {
         override fun invoke(p1: View) {
@@ -98,6 +105,29 @@ abstract class AbsMessageItem<H : AbsMessageItem.Holder> : AbsBaseMessageItem<H>
         // Render send state indicator
         holder.sendStateImageView.render(attributes.informationData.sendStateDecoration)
         holder.eventSendingIndicator.isVisible = attributes.informationData.sendStateDecoration == SendStateDecoration.SENDING_MEDIA
+
+        if (replyToMessageItem != null) {
+            bindReplyToItem(holder, replyToMessageItem!!)
+        } else {
+            holder.viewStubReplyToContainer.isVisible = false
+        }
+    }
+
+    private fun bindReplyToItem(holder: H, replyToMessageItem: AbsBaseMessageItem<Holder>) {
+        if (replyToMessageItem.layout != R.layout.item_timeline_event_base) {
+            holder.viewStubReplyToContainer.isVisible = false
+            return
+        }
+        holder.replyToStub.removeAllViews()
+
+        val subHolderView = LayoutInflater.from(holder.replyToStub.context)
+                .inflate(R.layout.item_timeline_event_base, holder.replyToStub, false)
+                .apply { holder.replyToStub.addView(this) }
+
+        val subHolder = MigHelper.createViewHolder(replyToMessageItem, subHolderView.parent)
+        MigHelper.bindHolder(subHolder, subHolderView)
+        holder.viewStubReplyToContainer.isVisible = true
+        replyToMessageItem.bind(subHolder)
     }
 
     override fun unbind(holder: H) {
@@ -106,6 +136,8 @@ abstract class AbsMessageItem<H : AbsMessageItem.Holder> : AbsBaseMessageItem<H>
         holder.avatarImageView.setOnLongClickListener(null)
         holder.memberNameView.setOnClickListener(null)
         holder.memberNameView.setOnLongClickListener(null)
+        holder.viewStubReplyToContainer.isVisible = false
+        holder.replyToStub.removeAllViews()
         super.unbind(holder)
     }
 
@@ -117,6 +149,9 @@ abstract class AbsMessageItem<H : AbsMessageItem.Holder> : AbsBaseMessageItem<H>
         val timeView by bind<TextView>(R.id.messageTimeView)
         val sendStateImageView by bind<SendStateImageView>(R.id.messageSendStateImageView)
         val eventSendingIndicator by bind<ProgressBar>(R.id.eventSendingIndicator)
+
+        val viewStubReplyToContainer by bind<View>(R.id.viewStubReplyToContainer)
+        val replyToStub by bind<FrameLayout>(R.id.replyToStub)
     }
 
     /**

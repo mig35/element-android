@@ -59,7 +59,7 @@ internal class DefaultRoomGetter @Inject constructor(
                     .equalTo(RoomSummaryEntityFields.IS_DIRECT, true)
                     .equalTo(RoomSummaryEntityFields.MEMBERSHIP_STR, Membership.JOIN.name)
                     .findAll()
-                    .firstOrNull { dm -> dm.otherMemberIds.size == 1 && dm.otherMemberIds.first() == otherUserId }
+                    .firstOrNull { dm -> dm.otherMemberIds.size == 1 && dm.otherMemberIds.first(null) == otherUserId }
                     ?.roomId
         }
     }

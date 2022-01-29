@@ -32,6 +32,7 @@ import im.vector.app.DefaultTimelineEventControllerCallback
 import im.vector.app.R
 import im.vector.app.core.epoxy.ClickListener
 import im.vector.app.core.epoxy.VectorEpoxyModel
+import im.vector.app.core.epoxy.charsequence.EpoxyCharSequence
 import im.vector.app.core.epoxy.charsequence.toEpoxyCharSequence
 import im.vector.app.core.files.LocalFilesHelper
 import im.vector.app.core.resources.ColorProvider
@@ -695,8 +696,9 @@ class MessageItemFactory @Inject constructor(
             this.replyToMessageId = replyToEventId
             if (replyToMessageItem != null) {
                 this.replyToMessageItem = replyToMessageItem
-                if (this is MessageTextItem && message is Spannable) {
-                    val spannableMessage = message as Spannable
+                if (this is MessageTextItem) {
+                    val charSequenceMessage = message?.charSequence
+                    val spannableMessage = charSequenceMessage as? Spannable ?: return
                     val blockQuoteSpans = spannableMessage.getSpans<BlockQuoteSpan>()
                     if (blockQuoteSpans.isNotEmpty()) {
                         val end = blockQuoteSpans.maxOf { spannableMessage.getSpanEnd(it) }
@@ -709,7 +711,7 @@ class MessageItemFactory @Inject constructor(
                                         .subSequence(end, spannableMessage.length)
                                         .trim()
                         )
-                        message = newString
+                        message = EpoxyCharSequence(newString)
                     }
                 }
             }

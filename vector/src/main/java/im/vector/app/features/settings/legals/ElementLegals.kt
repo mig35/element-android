@@ -16,6 +16,7 @@
 
 package im.vector.app.features.settings.legals
 
+import im.vector.app.FeatureToggle
 import im.vector.app.R
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.features.discovery.ServerPolicy
@@ -29,10 +30,18 @@ class ElementLegals @Inject constructor(
      * Use ServerPolicy model
      */
     fun getData(): List<ServerPolicy> {
-        return listOf(
-                ServerPolicy(stringProvider.getString(R.string.settings_copyright), VectorSettingsUrls.COPYRIGHT),
-                ServerPolicy(stringProvider.getString(R.string.settings_app_term_conditions), VectorSettingsUrls.TAC),
-                ServerPolicy(stringProvider.getString(R.string.settings_privacy_policy), VectorSettingsUrls.PRIVACY_POLICY)
-        )
+        return listOf<ServerPolicy>()
+                .let {
+                    if (FeatureToggle.REMOVE_COPYRIGHT)
+                        it
+                    else
+                        it.plus(ServerPolicy(stringProvider.getString(R.string.settings_copyright), VectorSettingsUrls.COPYRIGHT))
+                }
+                .plus(
+                        listOf(
+                                ServerPolicy(stringProvider.getString(R.string.settings_app_term_conditions), VectorSettingsUrls.TAC),
+                                ServerPolicy(stringProvider.getString(R.string.settings_privacy_policy), VectorSettingsUrls.PRIVACY_POLICY)
+                        )
+                )
     }
 }
